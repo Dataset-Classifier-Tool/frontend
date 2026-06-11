@@ -278,3 +278,75 @@ input {
     grid-template-columns: 1fr;
   }
 }
+
+.user-badge {
+  background: #eef3ff;
+  color: #2563eb;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: #555b6e;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.alert {
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 18px 0;
+  font-weight: 700;
+}
+
+.alert.error {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.dataset-create-form {
+  background: #ffffff;
+  border: 1px solid #e8eaf0;
+  border-radius: 22px;
+  padding: 24px;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dataset-create-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.dataset-create-form input,
+.dataset-create-form textarea {
+  border: 1px solid #d8deea;
+  border-radius: 12px;
+  padding: 13px 14px;
+  outline: none;
+}
+
+.dataset-create-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.button.danger {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}

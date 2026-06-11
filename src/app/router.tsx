@@ -1,6 +1,8 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { Outlet, createBrowserRouter } from 'react-router-dom'
 
 import Header from '../common/components/Header'
+import ProtectedRoute from '../common/components/ProtectedRoute'
+
 import HomePage from '../pages/home/HomePage'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
@@ -13,16 +15,10 @@ function RootLayout() {
     <>
       <Header />
       <main className="main-container">
-        <OutletWrapper />
+        <Outlet />
       </main>
     </>
   )
-}
-
-import { Outlet } from 'react-router-dom'
-
-function OutletWrapper() {
-  return <Outlet />
 }
 
 export const router = createBrowserRouter([
@@ -44,11 +40,19 @@ export const router = createBrowserRouter([
       },
       {
         path: 'datasets',
-        element: <DatasetListPage />,
+        element: (
+          <ProtectedRoute>
+            <DatasetListPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'upload',
-        element: <UploadPage />,
+        element: (
+          <ProtectedRoute>
+            <UploadPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'pricing',
