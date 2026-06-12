@@ -8,8 +8,10 @@ function RegisterPage() {
   const register = useAuthStore((state) => state.register)
   const isLoading = useAuthStore((state) => state.isLoading)
 
-  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [birthDate, setBirthDate] = useState('')
   const [nickname, setNickname] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -18,28 +20,48 @@ function RegisterPage() {
     setErrorMessage('')
 
     try {
-      await register({ email, nickname, password })
+      await register({
+        name,
+        birth_date: birthDate,
+        nickname,
+        email,
+        password,
+      })
+
       navigate('/login')
-    } catch {
-      setErrorMessage('회원가입에 실패했습니다. 입력값을 확인해주세요.')
+    } catch (error: any) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          '회원가입에 실패했습니다. 입력값을 확인해주세요.',
+      )
     }
   }
 
   return (
     <section className="page-card">
       <h1>회원가입</h1>
-      <p>무료 계정으로 하루 10회 데이터셋 분류 기능을 사용할 수 있습니다.</p>
+      <p>이름, 생년월일, 이메일을 입력해 계정을 생성합니다.</p>
 
       {errorMessage && <div className="alert error">{errorMessage}</div>}
 
       <form className="form" onSubmit={handleSubmit}>
         <label>
-          이메일
+          이름
           <input
-            type="email"
-            placeholder="test@test.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            type="text"
+            placeholder="김도균"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          생년월일
+          <input
+            type="date"
+            value={birthDate}
+            onChange={(event) => setBirthDate(event.target.value)}
             required
           />
         </label>
@@ -56,6 +78,18 @@ function RegisterPage() {
         </label>
 
         <label>
+          이메일
+          <input
+            type="email"
+            placeholder="test@test.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            autoComplete="email"
+          />
+        </label>
+
+        <label>
           비밀번호
           <input
             type="password"
@@ -64,6 +98,7 @@ function RegisterPage() {
             onChange={(event) => setPassword(event.target.value)}
             required
             minLength={8}
+            autoComplete="new-password"
           />
         </label>
 

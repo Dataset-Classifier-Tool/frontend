@@ -1,24 +1,30 @@
 export type MembershipType = 'free' | 'premium' | 'admin'
+export type AuthProvider = 'local' | 'kakao' | 'naver'
 
 export interface User {
   id: number
-  email: string
+  name: string
+  birth_date: string | null
   nickname: string
+  email: string
   membership_type: MembershipType
+  provider: AuthProvider
   is_active: boolean
   created_at: string | null
   updated_at: string | null
 }
 
-export interface LoginRequest {
+export interface RegisterRequest {
+  name: string
+  birth_date: string
+  nickname: string
   email: string
   password: string
 }
 
-export interface RegisterRequest {
+export interface LoginRequest {
   email: string
   password: string
-  nickname: string
 }
 
 export interface LoginResponse {

@@ -23,6 +23,10 @@ function Header() {
         <Link to="/datasets">Datasets</Link>
         <Link to="/upload">Upload</Link>
         <Link to="/pricing">Pricing</Link>
+
+        {user?.membership_type === 'admin' && (
+          <Link to="/admin/users">Admin</Link>
+        )}
       </nav>
 
       <div className="auth-links">
@@ -31,11 +35,7 @@ function Header() {
             <span className="user-badge">
               {user?.nickname ?? 'User'}
             </span>
-            <button
-              type="button"
-              className="text-button"
-              onClick={handleLogout}
-            >
+            <button type="button" className="text-button" onClick={handleLogout}>
               Logout
             </button>
           </>
