@@ -570,3 +570,9 @@ input {
   cursor: pointer;
   padding: 0;
 }
+
+.alert.success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #bbf7d0;
+}
