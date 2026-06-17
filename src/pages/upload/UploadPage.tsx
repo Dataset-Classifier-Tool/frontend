@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { getDatasetsApi } from '../../common/api/datasetApi'
 import { uploadVideoApi } from '../../common/api/uploadApi'
@@ -9,11 +10,19 @@ const MAX_FILE_SIZE_MB = 500
 const MIN_FRAME_INTERVAL = 1
 const MAX_FRAME_INTERVAL = 60
 
+type TargetWidthOption = 'original' | '640' | '960' | '1280'
+
 function UploadPage() {
+  const navigate = useNavigate()
+
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [datasetId, setDatasetId] = useState('')
   const [file, setFile] = useState<File | null>(null)
+
   const [frameIntervalSeconds, setFrameIntervalSeconds] = useState(3)
+  const [targetWidth, setTargetWidth] = useState<TargetWidthOption>('640')
+  const [autoLabel, setAutoLabel] = useState(true)
+
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -33,9 +42,7 @@ function UploadPage() {
   }, [])
 
   const validateFile = (selectedFile: File | null) => {
-    if (!selectedFile) {
-      return '업로드할 영상 파일을 선택해주세요.'
-    }
+    if (!selectedFile) return '업로드할 영상 파일을 선택해주세요.'
 
     const extension = selectedFile.name.split('.').pop()?.toLowerCase()
 
@@ -49,9 +56,7 @@ function UploadPage() {
       return `영상 파일은 최대 ${MAX_FILE_SIZE_MB}MB까지 업로드할 수 있습니다.`
     }
 
-    if (selectedFile.size <= 0) {
-      return '비어 있는 파일은 업로드할 수 없습니다.'
-    }
+    if (selectedFile.size <= 0) return '비어 있는 파일은 업로드할 수 없습니다.'
 
     return null
   }
@@ -80,14 +85,12 @@ function UploadPage() {
     }
 
     const fileError = validateFile(file)
-
     if (fileError) {
       setErrorMessage(fileError)
       return
     }
 
     const intervalError = validateFrameInterval()
-
     if (intervalError) {
       setErrorMessage(intervalError)
       return
@@ -96,23 +99,37 @@ function UploadPage() {
     if (!file) return
 
     const formData = new FormData()
+
     formData.append('file', file)
     formData.append('frame_interval_seconds', String(frameIntervalSeconds))
+    formData.append('auto_label', String(autoLabel))
+    formData.append('target_width', targetWidth === 'original' ? '' : targetWidth)
 
     setIsLoading(true)
 
     try {
       const response = await uploadVideoApi(Number(datasetId), formData)
 
+      const autoLabelText = response.data.auto_label_result
+        ? ` / 자동 라벨링 ${response.data.auto_label_result.labeled_frames}개 완료`
+        : ''
+
+      const widthText = response.data.target_width
+        ? ` / 저장 해상도 ${response.data.target_width}px`
+        : ' / 원본 해상도 유지'
+
       setSuccessMessage(
-        `영상 업로드 성공! 추출된 프레임 수: ${response.data.extracted_frame_count}개`,
+        `영상 업로드 성공! 추출 프레임 ${response.data.extracted_frame_count}개${widthText}${autoLabelText}`,
       )
 
       setFile(null)
+
+      setTimeout(() => {
+        navigate(`/datasets/${datasetId}`)
+      }, 1200)
     } catch (error: any) {
       setErrorMessage(
-        error.response?.data?.message ||
-          '영상 업로드 중 오류가 발생했습니다.',
+        error.response?.data?.message || '영상 업로드 중 오류가 발생했습니다.',
       )
     } finally {
       setIsLoading(false)
@@ -122,7 +139,10 @@ function UploadPage() {
   return (
     <section className="page-card wide">
       <h1>영상 업로드</h1>
-      <p>영상을 업로드하면 일정 간격으로 프레임이 자동 추출됩니다.</p>
+      <p>
+        영상을 업로드하면 프레임 추출, 해상도 조절, AI 자동 라벨링까지 한 번에
+        처리할 수 있습니다.
+      </p>
 
       {errorMessage && <div className="alert error">{errorMessage}</div>}
       {successMessage && <div className="alert success">{successMessage}</div>}
@@ -161,6 +181,30 @@ function UploadPage() {
         </label>
 
         <label>
+          프레임 저장 해상도
+          <select
+            value={targetWidth}
+            onChange={(event) =>
+              setTargetWidth(event.target.value as TargetWidthOption)
+            }
+          >
+            <option value="original">원본 유지</option>
+            <option value="640">640px</option>
+            <option value="960">960px</option>
+            <option value="1280">1280px</option>
+          </select>
+        </label>
+
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={autoLabel}
+            onChange={(event) => setAutoLabel(event.target.checked)}
+          />
+          업로드 후 AI 자동 라벨링 실행
+        </label>
+
+        <label>
           영상 파일
           <input
             type="file"
@@ -186,7 +230,9 @@ function UploadPage() {
           className="button primary full"
           disabled={isLoading || datasets.length === 0}
         >
-          {isLoading ? '업로드 및 프레임 추출 중...' : '영상 업로드하기'}
+          {isLoading
+            ? '업로드 / 프레임 추출 / 자동 라벨링 중...'
+            : '영상 업로드하기'}
         </button>
       </form>
     </section>
