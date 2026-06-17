@@ -6,6 +6,7 @@ import {
   type LabelCounts,
 } from '../../common/api/classifierApi'
 import { getDatasetDetailApi } from '../../common/api/datasetApi'
+import { downloadDatasetZipApi } from '../../common/api/exportApi'
 import { getFrameImageUrl } from '../../common/api/uploadApi'
 import {
   createBoundingBoxApi,
@@ -27,6 +28,8 @@ const LABEL_OPTIONS: LabelName[] = [
   'fire_smoke_carlight',
 ]
 
+const FRAMES_PER_PAGE = 20
+
 type FrameFilter = 'all' | 'unlabeled' | LabelName
 
 const SHORTCUT_LABEL_MAP: Record<string, LabelName> = {
@@ -36,10 +39,59 @@ const SHORTCUT_LABEL_MAP: Record<string, LabelName> = {
   n: 'negative',
 }
 
+const LABEL_STAT_META: Record<
+  LabelName | 'total' | 'unlabeled',
+  {
+    title: string
+    icon: string
+    tone: string
+  }
+> = {
+  total: {
+    title: '전체 프레임',
+    icon: '▣',
+    tone: 'total',
+  },
+  unlabeled: {
+    title: '미분류',
+    icon: '○',
+    tone: 'unlabeled',
+  },
+  fire: {
+    title: 'fire',
+    icon: '🔥',
+    tone: 'fire',
+  },
+  smoke: {
+    title: 'smoke',
+    icon: '☁',
+    tone: 'smoke',
+  },
+  carlight: {
+    title: 'carlight',
+    icon: '🚗',
+    tone: 'carlight',
+  },
+  negative: {
+    title: 'negative',
+    icon: '⊘',
+    tone: 'negative',
+  },
+  fire_smoke: {
+    title: 'fire_smoke',
+    icon: '🔥☁',
+    tone: 'fire-smoke',
+  },
+  fire_smoke_carlight: {
+    title: 'fire_smoke_carlight',
+    icon: '🔥🚗',
+    tone: 'mixed',
+  },
+}
+
 function DatasetDetailPage() {
   const navigate = useNavigate()
   const { datasetId } = useParams()
-
   const imageRef = useRef<HTMLImageElement | null>(null)
 
   const createLabel = useLabelStore((state) => state.createLabel)
@@ -48,8 +100,8 @@ function DatasetDetailPage() {
 
   const [dataset, setDataset] = useState<Dataset | null>(null)
   const [selectedFrame, setSelectedFrame] = useState<DatasetFrame | null>(null)
-
   const [filter, setFilter] = useState<FrameFilter>('all')
+  const [currentPage, setCurrentPage] = useState(1)
   const [selectedBoxLabel, setSelectedBoxLabel] = useState<LabelName>('fire')
 
   const [boxes, setBoxes] = useState<BoundingBox[]>([])
@@ -66,6 +118,7 @@ function DatasetDetailPage() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [isAutoLabeling, setIsAutoLabeling] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [autoLabelMessage, setAutoLabelMessage] = useState('')
   const [autoLabelCounts, setAutoLabelCounts] = useState<LabelCounts | null>(
@@ -99,6 +152,10 @@ function DatasetDetailPage() {
   }, [datasetId])
 
   useEffect(() => {
+    setCurrentPage(1)
+  }, [filter])
+
+  useEffect(() => {
     if (!selectedFrame) {
       setBoxes([])
       return
@@ -126,6 +183,24 @@ function DatasetDetailPage() {
     )
   }, [allFrames, filter])
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredFrames.length / FRAMES_PER_PAGE),
+  )
+
+  const paginatedFrames = useMemo(() => {
+    const startIndex = (currentPage - 1) * FRAMES_PER_PAGE
+    return filteredFrames.slice(startIndex, startIndex + FRAMES_PER_PAGE)
+  }, [filteredFrames, currentPage])
+
+  const visibleStart =
+    filteredFrames.length === 0 ? 0 : (currentPage - 1) * FRAMES_PER_PAGE + 1
+
+  const visibleEnd = Math.min(
+    currentPage * FRAMES_PER_PAGE,
+    filteredFrames.length,
+  )
+
   const labelStats = useMemo(() => {
     const stats: Record<LabelName | 'total' | 'unlabeled', number> = {
       total: allFrames.length,
@@ -151,6 +226,33 @@ function DatasetDetailPage() {
 
     return stats
   }, [allFrames])
+
+  const labelStatItems = useMemo(() => {
+    const keys: Array<LabelName | 'unlabeled'> = [
+      'unlabeled',
+      'fire',
+      'smoke',
+      'carlight',
+      'negative',
+      'fire_smoke',
+      'fire_smoke_carlight',
+    ]
+
+    return keys.map((key) => {
+      const count = labelStats[key]
+      const percentage =
+        labelStats.total > 0
+          ? Math.round((count / labelStats.total) * 1000) / 10
+          : 0
+
+      return {
+        key,
+        count,
+        percentage,
+        ...LABEL_STAT_META[key],
+      }
+    })
+  }, [labelStats])
 
   const boxStats = useMemo(() => {
     const stats: Record<LabelName | 'total', number> = {
@@ -186,25 +288,16 @@ function DatasetDetailPage() {
         ...prevDataset,
         videos: prevDataset.videos.map((video) => ({
           ...video,
-          frames: video.frames?.map((frame) => {
-            if (frame.id !== frameId) return frame
-
-            return {
-              ...frame,
-              labels: nextLabels,
-            }
-          }),
+          frames: video.frames?.map((frame) =>
+            frame.id === frameId ? { ...frame, labels: nextLabels } : frame,
+          ),
         })),
       }
     })
 
     setSelectedFrame((prevFrame) => {
       if (!prevFrame || prevFrame.id !== frameId) return prevFrame
-
-      return {
-        ...prevFrame,
-        labels: nextLabels,
-      }
+      return { ...prevFrame, labels: nextLabels }
     })
   }
 
@@ -275,6 +368,34 @@ function DatasetDetailPage() {
     }
   }
 
+  const handleDownloadDatasetZip = async () => {
+    if (!datasetId) return
+
+    const labeledFrameCount = allFrames.filter(
+      (frame) => frame.labels.length > 0,
+    ).length
+
+    if (labeledFrameCount === 0) {
+      setErrorMessage('다운로드할 라벨링된 프레임이 없습니다.')
+      return
+    }
+
+    setIsExporting(true)
+    setErrorMessage('')
+    setAutoLabelMessage('')
+
+    try {
+      await downloadDatasetZipApi(Number(datasetId))
+    } catch (error: any) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          '데이터셋 ZIP 다운로드 중 오류가 발생했습니다.',
+      )
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   const moveSelectedFrame = (direction: 'prev' | 'next') => {
     if (!selectedFrame) return
 
@@ -283,7 +404,16 @@ function DatasetDetailPage() {
 
     if (nextIndex < 0 || nextIndex >= filteredFrames.length) return
 
-    setSelectedFrame(filteredFrames[nextIndex])
+    const nextFrame = filteredFrames[nextIndex]
+    const nextPage = Math.floor(nextIndex / FRAMES_PER_PAGE) + 1
+
+    setCurrentPage(nextPage)
+    setSelectedFrame(nextFrame)
+  }
+
+  const goToPage = (page: number) => {
+    const safePage = Math.min(Math.max(page, 1), totalPages)
+    setCurrentPage(safePage)
   }
 
   const getNormalizedPoint = (event: MouseEvent<HTMLDivElement>) => {
@@ -402,8 +532,9 @@ function DatasetDetailPage() {
 
   return (
     <section>
-      <div className="page-header">
+      <div className="page-header dataset-detail-header">
         <div>
+          <span className="eyebrow">Dataset Workspace</span>
           <h1>{dataset.name}</h1>
           <p>{dataset.description || '설명이 없습니다.'}</p>
           <p>
@@ -420,48 +551,122 @@ function DatasetDetailPage() {
         </button>
       </div>
 
-      <div className="detail-actions">
-        <button
-          type="button"
-          className="button primary"
-          onClick={() => navigate('/upload')}
-        >
-          영상 업로드하기
-        </button>
+      <div className="detail-action-panel">
+        <div>
+          <strong>작업 메뉴</strong>
+          <p>업로드, 자동 라벨링, 라벨별 ZIP 다운로드를 실행합니다.</p>
+        </div>
 
-        <button
-          type="button"
-          className="button secondary"
-          disabled={isAutoLabeling || allFrames.length === 0}
-          onClick={handleAutoLabelDataset}
-        >
-          {isAutoLabeling ? 'AI 자동 라벨링 중...' : 'AI 자동 라벨링 실행'}
-        </button>
+        <div className="detail-actions">
+          <button
+            type="button"
+            className="button primary"
+            onClick={() => navigate('/upload')}
+          >
+            영상 업로드
+          </button>
+
+          <button
+            type="button"
+            className="button secondary"
+            disabled={isAutoLabeling || allFrames.length === 0}
+            onClick={handleAutoLabelDataset}
+          >
+            {isAutoLabeling ? 'AI 라벨링 중...' : 'AI 자동 라벨링'}
+          </button>
+
+          <button
+            type="button"
+            className="button secondary"
+            disabled={isExporting || allFrames.length === 0}
+            onClick={handleDownloadDatasetZip}
+          >
+            {isExporting ? 'ZIP 생성 중...' : 'ZIP 다운로드'}
+          </button>
+        </div>
       </div>
 
       {errorMessage && <div className="alert error">{errorMessage}</div>}
       {autoLabelMessage && <div className="alert success">{autoLabelMessage}</div>}
 
-      <div className="dataset-stats-card">
-        <h3>데이터셋 라벨 현황</h3>
+      <div className="dataset-stats-card premium-stats-card">
+        <div className="premium-stats-header">
+          <div className="premium-stats-title-group">
+            <div className="premium-stats-icon">▣</div>
 
-        <div className="dataset-stats-grid">
-          <div className="dataset-stats-item">
-            전체 프레임
-            <strong>{labelStats.total}장</strong>
-          </div>
-
-          <div className="dataset-stats-item">
-            미분류
-            <strong>{labelStats.unlabeled}장</strong>
-          </div>
-
-          {LABEL_OPTIONS.map((labelName) => (
-            <div className="dataset-stats-item" key={labelName}>
-              {labelName}
-              <strong>{labelStats[labelName]}장</strong>
+            <div>
+              <h3>데이터셋 라벨 현황</h3>
+              <p>전체 프레임 기준 라벨 분포를 확인합니다.</p>
             </div>
+          </div>
+
+          <button
+            type="button"
+            className="stats-refresh-button"
+            onClick={reloadDatasetDetail}
+          >
+            ⟳ 통계 새로고침
+          </button>
+        </div>
+
+        <div className="premium-stats-divider" />
+
+        <div className="premium-stats-grid">
+          <article className="premium-stat-card total-card">
+            <div className="stat-icon-box total">▣</div>
+            <span>전체 프레임</span>
+            <div className="stat-count-row">
+              <strong>{labelStats.total}</strong>
+              <small>장</small>
+            </div>
+          </article>
+
+          {labelStatItems.map((item) => (
+            <article className="premium-stat-card" key={item.key}>
+              <div className={`stat-icon-box ${item.tone}`}>
+                {item.icon}
+              </div>
+
+              <span>{item.title}</span>
+
+              <div className="stat-count-row">
+                <strong>{item.count}</strong>
+                <small>장</small>
+              </div>
+
+              <em>{item.percentage}%</em>
+            </article>
           ))}
+        </div>
+
+        <div className="label-ratio-panel">
+          <div className="label-ratio-title">
+            <strong>라벨 분포 비율</strong>
+            <span>총 {labelStats.total}장 기준</span>
+          </div>
+
+          <div className="label-ratio-bar">
+            {labelStatItems.map((item) => (
+              <div
+                key={item.key}
+                className={`label-ratio-segment ${item.tone}`}
+                style={{
+                  width: `${Math.max(item.percentage, item.count > 0 ? 2 : 0)}%`,
+                }}
+                title={`${item.title}: ${item.percentage}%`}
+              />
+            ))}
+          </div>
+
+          <div className="label-ratio-legend">
+            {labelStatItems.map((item) => (
+              <div className="label-ratio-legend-item" key={item.key}>
+                <span className={`legend-dot ${item.tone}`} />
+                <strong>{item.percentage}%</strong>
+                <em>{item.title}</em>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -479,6 +684,40 @@ function DatasetDetailPage() {
           </div>
         </div>
       )}
+
+      <div className="frame-toolbar">
+        <div>
+          <h3>프레임 목록</h3>
+          <p>
+            총 {filteredFrames.length}장 중 {visibleStart}~{visibleEnd}장 표시 ·
+            페이지당 {FRAMES_PER_PAGE}장
+          </p>
+        </div>
+
+        <div className="pagination-compact">
+          <button
+            type="button"
+            className="pagination-button"
+            disabled={currentPage <= 1}
+            onClick={() => goToPage(currentPage - 1)}
+          >
+            이전
+          </button>
+
+          <strong>
+            {currentPage} / {totalPages}
+          </strong>
+
+          <button
+            type="button"
+            className="pagination-button"
+            disabled={currentPage >= totalPages}
+            onClick={() => goToPage(currentPage + 1)}
+          >
+            다음
+          </button>
+        </div>
+      </div>
 
       <div className="label-filter-bar">
         <button
@@ -517,15 +756,18 @@ function DatasetDetailPage() {
         F Fire · S Smoke · C CarLight · N Negative · ← 이전 · → 다음 · ESC 닫기
       </div>
 
-      {filteredFrames.length === 0 ? (
+      {paginatedFrames.length === 0 ? (
         <article className="dataset-card empty">
           <h2>조건에 맞는 프레임이 없습니다</h2>
           <p>필터를 변경하거나 영상을 추가로 업로드해보세요.</p>
         </article>
       ) : (
-        <div className="frame-preview-grid">
-          {filteredFrames.map((frame) => (
-            <article className="frame-preview-card" key={frame.id}>
+        <div className="frame-preview-grid professional-grid">
+          {paginatedFrames.map((frame) => (
+            <article
+              className="frame-preview-card professional-frame-card"
+              key={frame.id}
+            >
               <button
                 type="button"
                 className="frame-image-button"
@@ -538,11 +780,14 @@ function DatasetDetailPage() {
                 />
               </button>
 
-              <small>
-                {frame.timestamp !== null
-                  ? `${frame.timestamp.toFixed(1)}초`
-                  : '시간 정보 없음'}
-              </small>
+              <div className="frame-card-meta">
+                <strong>Frame {frame.frame_number}</strong>
+                <small>
+                  {frame.timestamp !== null
+                    ? `${frame.timestamp.toFixed(1)}초`
+                    : '시간 정보 없음'}
+                </small>
+              </div>
 
               <div className="frame-label-row">
                 {frame.labels.length === 0 ? (
@@ -578,6 +823,71 @@ function DatasetDetailPage() {
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="pagination-bar">
+          <button
+            type="button"
+            className="pagination-button"
+            disabled={currentPage <= 1}
+            onClick={() => goToPage(1)}
+          >
+            처음
+          </button>
+
+          <button
+            type="button"
+            className="pagination-button"
+            disabled={currentPage <= 1}
+            onClick={() => goToPage(currentPage - 1)}
+          >
+            이전
+          </button>
+
+          <div className="pagination-pages">
+            {Array.from({ length: totalPages }, (_, index) => index + 1)
+              .filter((page) => {
+                return (
+                  page === 1 ||
+                  page === totalPages ||
+                  Math.abs(page - currentPage) <= 2
+                )
+              })
+              .map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={
+                    page === currentPage
+                      ? 'pagination-page active'
+                      : 'pagination-page'
+                  }
+                  onClick={() => goToPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+          </div>
+
+          <button
+            type="button"
+            className="pagination-button"
+            disabled={currentPage >= totalPages}
+            onClick={() => goToPage(currentPage + 1)}
+          >
+            다음
+          </button>
+
+          <button
+            type="button"
+            className="pagination-button"
+            disabled={currentPage >= totalPages}
+            onClick={() => goToPage(totalPages)}
+          >
+            마지막
+          </button>
         </div>
       )}
 
