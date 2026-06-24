@@ -1,0 +1,98 @@
+.frame-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.frame-modal {
+  width: min(1080px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+
+  padding: 24px;
+
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.frame-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.frame-modal-header h2 {
+  margin-bottom: 4px;
+  font-size: 26px;
+  letter-spacing: -0.04em;
+}
+
+.frame-modal-header p {
+  margin-bottom: 0;
+  font-size: 14px;
+}
+
+.frame-modal-image {
+  width: 100%;
+  max-height: 62vh;
+  object-fit: contain;
+}
+
+.frame-modal-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 12px;
+}
+
+.modal-label-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  padding: 14px 0 0;
+  border-top: 1px solid var(--color-border);
+  background: transparent;
+}
+
+.frame-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+
+  margin-top: 18px;
+  padding-top: 18px;
+
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 768px) {
+  .frame-modal-backdrop {
+    padding: 10px;
+  }
+
+  .frame-modal {
+    padding: 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .frame-modal-header,
+  .frame-modal-actions {
+    flex-direction: column;
+  }
+
+  .frame-modal-actions .button {
+    width: 100%;
+  }
+}

@@ -1,50 +1,51 @@
 import { Link, useNavigate } from 'react-router-dom'
+
 import { useAuthStore } from '../../stores/authStore'
 
 function Header() {
   const navigate = useNavigate()
 
   const user = useAuthStore((state) => state.user)
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const accessToken = useAuthStore((state) => state.accessToken)
   const logout = useAuthStore((state) => state.logout)
+
+  const isLoggedIn = Boolean(accessToken)
 
   const handleLogout = () => {
     logout()
-    navigate('/')
+    navigate('/login')
   }
 
   return (
     <header className="header">
       <Link to="/" className="logo">
-        Dataset Classifier Tool
+        <strong>데이터셋 분류 도구</strong>
+        <span>AI 학습 데이터 제작 플랫폼</span>
       </Link>
 
       <nav className="nav">
-        <Link to="/datasets">Datasets</Link>
-        <Link to="/upload">Upload</Link>
-        <Link to="/pricing">Pricing</Link>
+        <Link to="/datasets">데이터셋</Link>
+        <Link to="/upload">영상 업로드</Link>
+        <Link to="/pricing">요금제</Link>
 
-        {user?.membership_type === 'admin' && (
-          <Link to="/admin/users">Admin</Link>
-        )}
+        {isLoggedIn && <Link to="/admin/users">관리자</Link>}
       </nav>
 
-      <div className="auth-links">
-        {isAuthenticated ? (
+      <div className="nav">
+        {isLoggedIn ? (
           <>
-            <span className="user-badge">
-              {user?.nickname ?? 'User'}
+            <span className="header-user-name">
+              {user?.name || user?.email || '사용자'}
             </span>
-            <button type="button" className="text-button" onClick={handleLogout}>
-              Logout
+
+            <button type="button" onClick={handleLogout}>
+              로그아웃
             </button>
           </>
         ) : (
           <>
-            <Link to="/login">Login</Link>
-            <Link to="/register" className="primary-link">
-              Register
-            </Link>
+            <Link to="/login">로그인</Link>
+            <Link to="/register">회원가입</Link>
           </>
         )}
       </div>

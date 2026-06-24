@@ -1,9 +1,11 @@
 import { create } from 'zustand'
+
 import {
   getVideoFramesApi,
   uploadVideoApi,
   type UploadVideoResponse,
 } from '../common/api/uploadApi'
+
 import type { DatasetFrame } from '../types/frame'
 
 interface UploadState {
@@ -40,11 +42,15 @@ export const useUploadStore = create<UploadState>((set) => ({
     })
 
     try {
-      const response = await uploadVideoApi(
-        datasetId,
-        file,
-        frameIntervalSeconds,
+      const formData = new FormData()
+
+      formData.append('file', file)
+      formData.append(
+        'frame_interval_seconds',
+        String(frameIntervalSeconds),
       )
+
+      const response = await uploadVideoApi(datasetId, formData)
 
       set({
         uploadedVideoResult: response.data,

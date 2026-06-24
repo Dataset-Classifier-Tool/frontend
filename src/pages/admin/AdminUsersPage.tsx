@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+
 import {
   getAdminUsersApi,
   updateUserActiveApi,
   updateUserMembershipApi,
 } from '../../common/api/adminApi'
+
 import type { MembershipType } from '../../types/auth'
 import type { AdminUser } from '../../types/user'
 
@@ -29,6 +31,33 @@ function AdminUsersPage() {
     }
   }
 
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const filteredUsers = useMemo(() => {
+    const keyword = searchKeyword.trim().toLowerCase()
+    if (!keyword) return users
+
+    return users.filter((user) => {
+      return (
+        user.name?.toLowerCase().includes(keyword) ||
+        user.nickname?.toLowerCase().includes(keyword) ||
+        user.email?.toLowerCase().includes(keyword) ||
+        user.provider?.toLowerCase().includes(keyword) ||
+        user.membership_type?.toLowerCase().includes(keyword)
+      )
+    })
+  }, [users, searchKeyword])
+
+  const totalUsers = users.length
+  const activeUsers = users.filter((user) => user.is_active).length
+  const inactiveUsers = totalUsers - activeUsers
+  const adminUsers = users.filter((user) => user.membership_type === 'admin').length
+  const premiumUsers = users.filter(
+    (user) => user.membership_type === 'premium',
+  ).length
+
   const handleMembershipChange = async (
     userId: number,
     membershipType: MembershipType,
@@ -42,7 +71,7 @@ function AdminUsersPage() {
         prev.map((user) => (user.id === userId ? response.data : user)),
       )
     } catch (error: any) {
-      alert(error.response?.data?.message || '회원 등급 변경 실패')
+      alert(error.response?.data?.message || '회원 등급 변경에 실패했습니다.')
     }
   }
 
@@ -64,51 +93,15 @@ function AdminUsersPage() {
         prev.map((item) => (item.id === user.id ? response.data : item)),
       )
     } catch (error: any) {
-      alert(error.response?.data?.message || '활성화 상태 변경 실패')
+      alert(error.response?.data?.message || '활성화 상태 변경에 실패했습니다.')
     }
   }
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
-  const filteredUsers = useMemo(() => {
-    const keyword = searchKeyword.trim().toLowerCase()
-
-    if (!keyword) return users
-
-    return users.filter((user) => {
-      const name = user.name?.toLowerCase() ?? ''
-      const nickname = user.nickname?.toLowerCase() ?? ''
-      const email = user.email?.toLowerCase() ?? ''
-      const provider = user.provider?.toLowerCase() ?? ''
-      const membership = user.membership_type?.toLowerCase() ?? ''
-
-      return (
-        name.includes(keyword) ||
-        nickname.includes(keyword) ||
-        email.includes(keyword) ||
-        provider.includes(keyword) ||
-        membership.includes(keyword)
-      )
-    })
-  }, [users, searchKeyword])
-
-  const totalUsers = users.length
-  const activeUsers = users.filter((user) => user.is_active).length
-  const inactiveUsers = totalUsers - activeUsers
-  const adminUsers = users.filter(
-    (user) => user.membership_type === 'admin',
-  ).length
-  const premiumUsers = users.filter(
-    (user) => user.membership_type === 'premium',
-  ).length
-
   return (
-    <section>
-      <div className="page-header admin-page-header">
+    <section className="admin-modern-page">
+      <div className="admin-modern-header">
         <div>
-          <span className="eyebrow">Admin Console</span>
+          <span className="eyebrow">관리자 콘솔</span>
           <h1>회원 관리</h1>
           <p>회원 등급, 가입 방식, 활성화 상태를 한 화면에서 관리합니다.</p>
         </div>
@@ -125,166 +118,164 @@ function AdminUsersPage() {
 
       {errorMessage && <div className="alert error">{errorMessage}</div>}
 
-      <div className="admin-summary-grid">
-        <article className="admin-summary-card primary">
+      <div className="admin-modern-stats">
+        <article className="admin-stat-card purple">
           <span>전체 회원</span>
           <strong>{totalUsers}</strong>
-          <small>registered users</small>
+          <p>등록된 전체 계정</p>
         </article>
 
-        <article className="admin-summary-card">
+        <article className="admin-stat-card green">
           <span>활성 회원</span>
           <strong>{activeUsers}</strong>
-          <small>active accounts</small>
+          <p>현재 사용 가능한 계정</p>
         </article>
 
-        <article className="admin-summary-card">
+        <article className="admin-stat-card amber">
           <span>비활성 회원</span>
           <strong>{inactiveUsers}</strong>
-          <small>inactive accounts</small>
+          <p>접근 제한된 계정</p>
         </article>
 
-        <article className="admin-summary-card">
+        <article className="admin-stat-card blue">
           <span>관리자</span>
           <strong>{adminUsers}</strong>
-          <small>admin users</small>
+          <p>관리 권한 보유 계정</p>
         </article>
 
-        <article className="admin-summary-card">
+        <article className="admin-stat-card pink">
           <span>프리미엄</span>
           <strong>{premiumUsers}</strong>
-          <small>premium users</small>
+          <p>유료 등급 회원</p>
         </article>
       </div>
 
-      <div className="admin-toolbar">
-        <div>
-          <h2>회원 목록</h2>
-          <p>
-            총 {users.length}명 중 {filteredUsers.length}명이 표시됩니다.
-          </p>
-        </div>
+      <article className="admin-modern-table-card">
+        <div className="admin-modern-toolbar">
+          <div>
+            <h2>회원 목록</h2>
+            <p>
+              총 {users.length}명 중 {filteredUsers.length}명이 표시됩니다.
+            </p>
+          </div>
 
-        <div className="admin-search-box">
           <input
             type="search"
-            placeholder="이름, 닉네임, 이메일, 등급 검색"
             value={searchKeyword}
             onChange={(event) => setSearchKeyword(event.target.value)}
+            placeholder="이름, 닉네임, 이메일, 등급 검색"
           />
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="admin-loading-card">
-          <strong>회원 목록을 불러오는 중...</strong>
-          <p>잠시만 기다려주세요.</p>
-        </div>
-      ) : (
-        <div className="admin-table-card">
-          <table className="admin-table premium-admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>회원 정보</th>
-                <th>이메일</th>
-                <th>생년월일</th>
-                <th>가입방식</th>
-                <th>등급</th>
-                <th>상태</th>
-                <th>관리</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <span className="admin-id-badge">#{user.id}</span>
-                  </td>
-
-                  <td>
-                    <div className="admin-user-cell">
-                      <div className="admin-user-avatar">
-                        {user.name?.charAt(0) || 'U'}
-                      </div>
-
-                      <div>
-                        <strong>{user.name}</strong>
-                        <span>{user.nickname}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span className="admin-email">{user.email}</span>
-                  </td>
-
-                  <td>{user.birth_date || '-'}</td>
-
-                  <td>
-                    <span className="provider-chip">{user.provider}</span>
-                  </td>
-
-                  <td>
-                    <select
-                      className="admin-select"
-                      value={user.membership_type}
-                      onChange={(event) =>
-                        handleMembershipChange(
-                          user.id,
-                          event.target.value as MembershipType,
-                        )
-                      }
-                    >
-                      <option value="free">free</option>
-                      <option value="premium">premium</option>
-                      <option value="admin">admin</option>
-                    </select>
-                  </td>
-
-                  <td>
-                    <span
-                      className={
-                        user.is_active
-                          ? 'admin-status active'
-                          : 'admin-status inactive'
-                      }
-                    >
-                      {user.is_active ? '활성' : '비활성'}
-                    </span>
-                  </td>
-
-                  <td>
-                    <button
-                      type="button"
-                      className={
-                        user.is_active
-                          ? 'button danger'
-                          : 'button secondary'
-                      }
-                      onClick={() => handleActiveToggle(user)}
-                    >
-                      {user.is_active ? '비활성화' : '활성화'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {filteredUsers.length === 0 && (
+        {isLoading ? (
+          <div className="admin-empty-state">
+            <strong>회원 목록을 불러오는 중입니다</strong>
+            <p>잠시만 기다려주세요.</p>
+          </div>
+        ) : (
+          <div className="admin-modern-table-wrap">
+            <table className="admin-modern-table">
+              <thead>
                 <tr>
-                  <td colSpan={8}>
-                    <div className="admin-empty-state">
-                      <strong>표시할 회원이 없습니다.</strong>
-                      <p>검색어를 변경하거나 회원 목록을 새로고침해보세요.</p>
-                    </div>
-                  </td>
+                  <th>ID</th>
+                  <th>회원 정보</th>
+                  <th>이메일</th>
+                  <th>생년월일</th>
+                  <th>가입 방식</th>
+                  <th>등급</th>
+                  <th>상태</th>
+                  <th>관리</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+
+              <tbody>
+                {filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td>
+                      <span className="admin-id-badge">#{user.id}</span>
+                    </td>
+
+                    <td>
+                      <div className="admin-user-cell">
+                        <div className="admin-user-avatar">
+                          {user.name?.charAt(0) || 'U'}
+                        </div>
+
+                        <div>
+                          <strong>{user.name}</strong>
+                          <span>{user.nickname || '닉네임 없음'}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>
+                      <span className="admin-email">{user.email}</span>
+                    </td>
+
+                    <td>{user.birth_date || '-'}</td>
+
+                    <td>
+                      <span className="provider-chip">{user.provider}</span>
+                    </td>
+
+                    <td>
+                      <select
+                        className="admin-select"
+                        value={user.membership_type}
+                        onChange={(event) =>
+                          handleMembershipChange(
+                            user.id,
+                            event.target.value as MembershipType,
+                          )
+                        }
+                      >
+                        <option value="free">무료</option>
+                        <option value="premium">프리미엄</option>
+                        <option value="admin">관리자</option>
+                      </select>
+                    </td>
+
+                    <td>
+                      <span
+                        className={
+                          user.is_active
+                            ? 'admin-status active'
+                            : 'admin-status inactive'
+                        }
+                      >
+                        {user.is_active ? '활성' : '비활성'}
+                      </span>
+                    </td>
+
+                    <td>
+                      <button
+                        type="button"
+                        className={
+                          user.is_active ? 'button danger' : 'button secondary'
+                        }
+                        onClick={() => handleActiveToggle(user)}
+                      >
+                        {user.is_active ? '비활성화' : '활성화'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+                {filteredUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={8}>
+                      <div className="admin-empty-state">
+                        <strong>표시할 회원이 없습니다</strong>
+                        <p>검색어를 변경하거나 회원 목록을 새로고침해보세요.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </article>
     </section>
   )
 }

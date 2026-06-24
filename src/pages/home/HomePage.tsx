@@ -1,150 +1,137 @@
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 function HomePage() {
-  const navigate = useNavigate()
-
   return (
     <section className="home-page">
       <div className="hero">
-        <div className="eyebrow">
-          AI Dataset Creation Platform
-        </div>
+        <span className="eyebrow">AI 학습 데이터 제작 플랫폼</span>
 
         <h1>
-          Dataset
+          데이터셋을 만들고,
           <br />
-          Classifier Tool
+          라벨링하고,
+          <br />
+          학습 준비까지.
         </h1>
 
         <p className="hero-description">
-          영상 업로드부터 프레임 추출,
-          AI 자동 라벨링,
-          Bounding Box 생성,
-          데이터셋 검수까지.
-
-          AI 학습용 데이터셋을
-          빠르고 체계적으로 구축하기 위한 플랫폼입니다.
+          영상 업로드부터 프레임 추출, 수동 라벨링, AI 자동 라벨링,
+          바운딩 박스 생성, 데이터셋 내보내기까지 한 번에 관리하는
+          해커톤용 AI 데이터셋 제작 도구입니다.
         </p>
 
         <div className="hero-actions">
-          <button
-            className="button primary"
-            onClick={() => navigate('/datasets')}
-          >
+          <Link to="/datasets" className="button primary">
             데이터셋 시작하기
-          </button>
+          </Link>
 
-          <button
-            className="button secondary"
-            onClick={() => navigate('/pricing')}
-          >
+          <Link to="/pricing" className="button secondary">
             요금제 보기
-          </button>
+          </Link>
         </div>
       </div>
 
-      <div className="feature-section">
-        <h2>핵심 기능</h2>
+      <section className="feature-section">
+        <span className="eyebrow">주요 기능</span>
+        <h2>AI 학습 데이터 제작에 필요한 흐름을 하나로 연결합니다.</h2>
 
         <div className="feature-grid">
-
-          <div className="feature-card">
+          <article className="feature-card">
             <h3>영상 업로드</h3>
             <p>
-              MP4 영상 업로드 및 프로젝트 관리
+              MP4 영상을 데이터셋에 업로드하고 프로젝트 단위로 관리합니다.
             </p>
-          </div>
+          </article>
 
-          <div className="feature-card">
-            <h3>프레임 추출</h3>
+          <article className="feature-card">
+            <h3>프레임 자동 추출</h3>
             <p>
-              원하는 간격으로 자동 프레임 생성
+              OpenCV를 기반으로 설정한 간격마다 영상 프레임을 자동 추출합니다.
             </p>
-          </div>
+          </article>
 
-          <div className="feature-card">
+          <article className="feature-card">
+            <h3>수동 라벨링</h3>
+            <p>
+              화재, 연기, 차량 등화류, 정상 상황 등 프레임별 라벨을 직접 지정합니다.
+            </p>
+          </article>
+
+          <article className="feature-card">
             <h3>AI 자동 라벨링</h3>
             <p>
-              Fire / Smoke / CarLight 자동 분류
+              초기 자동 분류 로직을 활용해 라벨링 시간을 줄이고 검수 흐름을 만듭니다.
             </p>
-          </div>
+          </article>
 
-          <div className="feature-card">
-            <h3>Bounding Box</h3>
+          <article className="feature-card">
+            <h3>바운딩 박스</h3>
             <p>
-              수동 및 AI 자동 박스 생성
+              객체 탐지 모델 학습을 위해 프레임 위에 박스 좌표를 생성합니다.
             </p>
-          </div>
+          </article>
 
+          <article className="feature-card">
+            <h3>데이터셋 내보내기</h3>
+            <p>
+              라벨링된 프레임을 ZIP으로 다운로드하고 추후 YOLO/COCO 형식으로 확장합니다.
+            </p>
+          </article>
         </div>
-      </div>
+      </section>
 
-      <div className="workflow-section">
-        <h2>작업 흐름</h2>
+      <section className="workflow-section">
+        <span className="eyebrow">작업 흐름</span>
+        <h2>업로드부터 학습 준비까지 이어지는 전체 파이프라인</h2>
 
         <div className="workflow">
           <span>영상 업로드</span>
           <span>→</span>
-
           <span>프레임 추출</span>
           <span>→</span>
-
-          <span>AI 라벨링</span>
+          <span>라벨링</span>
           <span>→</span>
-
+          <span>바운딩 박스</span>
+          <span>→</span>
           <span>검수</span>
           <span>→</span>
-
-          <span>Export</span>
+          <span>내보내기</span>
         </div>
-      </div>
+      </section>
 
-      <div className="label-section">
-        <h2>지원 라벨</h2>
+      <section className="label-section">
+        <span className="eyebrow">지원 라벨</span>
+        <h2>도로·터널 화재 감지를 위한 주요 분류 기준</h2>
 
         <div className="label-grid">
-
-          <div className="label-card">
-            🔥 Fire
-          </div>
-
-          <div className="label-card">
-            🌫 Smoke
-          </div>
-
-          <div className="label-card">
-            🚗 CarLight
-          </div>
-
-          <div className="label-card">
-            ⭕ Negative
-          </div>
-
+          <article className="label-card">🔥 화재</article>
+          <article className="label-card">☁️ 연기</article>
+          <article className="label-card">🚗 차량 등화류</article>
+          <article className="label-card">✅ 정상 / 오탐 아님</article>
         </div>
-      </div>
+      </section>
 
-      <div className="progress-section">
-        <h2>프로젝트 진행 현황</h2>
+      <section className="progress-section">
+        <span className="eyebrow">프로젝트 현황</span>
+        <h2>현재는 데이터셋 제작 플랫폼 MVP 단계입니다.</h2>
 
         <div className="progress-grid">
-
-          <div className="progress-card">
-            <strong>95%</strong>
-            <span>Backend</span>
-          </div>
-
-          <div className="progress-card">
-            <strong>90%</strong>
-            <span>Frontend</span>
-          </div>
-
-          <div className="progress-card">
+          <article className="progress-card">
             <strong>85%</strong>
-            <span>Dataset Platform</span>
-          </div>
+            <span>백엔드 MVP</span>
+          </article>
 
+          <article className="progress-card">
+            <strong>80%</strong>
+            <span>프론트엔드 MVP</span>
+          </article>
+
+          <article className="progress-card">
+            <strong>45%</strong>
+            <span>딥러닝 포함 전체 프로젝트</span>
+          </article>
         </div>
-      </div>
+      </section>
     </section>
   )
 }

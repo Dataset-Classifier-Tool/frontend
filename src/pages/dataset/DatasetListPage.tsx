@@ -1,28 +1,28 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useDatasetStore } from '../../stores/datasetStore'
 
-import type { Dataset } from '../../types/dataset'
+type DatasetFormState = {
+  name: string
+  description: string
+}
 
-type DatasetWithStats = Dataset & {
-  video_count?: number
-  frame_count?: number
+const INITIAL_FORM_STATE: DatasetFormState = {
+  name: '',
+  description: '',
 }
 
 function DatasetListPage() {
-  const navigate = useNavigate()
-
-  const datasets = useDatasetStore((state) => state.datasets) as DatasetWithStats[]
+  const datasets = useDatasetStore((state) => state.datasets)
   const isLoading = useDatasetStore((state) => state.isLoading)
   const fetchDatasets = useDatasetStore((state) => state.fetchDatasets)
   const createDataset = useDatasetStore((state) => state.createDataset)
   const deleteDataset = useDatasetStore((state) => state.deleteDataset)
 
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [search, setSearch] = useState('')
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [form, setForm] = useState<DatasetFormState>(INITIAL_FORM_STATE)
+  const [searchKeyword, setSearchKeyword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
@@ -31,65 +31,66 @@ function DatasetListPage() {
     })
   }, [fetchDatasets])
 
-  const totalVideos = useMemo(() => {
-    return datasets.reduce((sum, dataset) => sum + (dataset.video_count ?? 0), 0)
-  }, [datasets])
-
-  const totalFrames = useMemo(() => {
-    return datasets.reduce((sum, dataset) => sum + (dataset.frame_count ?? 0), 0)
-  }, [datasets])
-
   const filteredDatasets = useMemo(() => {
-    const keyword = search.trim().toLowerCase()
+    const keyword = searchKeyword.trim().toLowerCase()
 
     if (!keyword) return datasets
 
     return datasets.filter((dataset) => {
-      const name = dataset.name.toLowerCase()
-      const description = dataset.description?.toLowerCase() ?? ''
-
-      return name.includes(keyword) || description.includes(keyword)
+      return (
+        dataset.name.toLowerCase().includes(keyword) ||
+        dataset.description?.toLowerCase().includes(keyword)
+      )
     })
-  }, [datasets, search])
+  }, [datasets, searchKeyword])
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '날짜 정보 없음'
+  const totalFrameCount = useMemo(() => {
+    return datasets.reduce((sum, dataset) => sum + (dataset.frame_count ?? 0), 0)
+  }, [datasets])
 
-    return new Intl.DateTimeFormat('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(new Date(dateString))
+  const totalVideoCount = useMemo(() => {
+    return datasets.reduce((sum, dataset) => sum + (dataset.video_count ?? 0), 0)
+  }, [datasets])
+
+  const handleChange = (
+    event:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = event.target
+
+    setForm((prevForm) => ({
+      ...prevForm,
+      [name]: value,
+    }))
   }
 
-  const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
+  const handleCreateDataset = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setErrorMessage('')
 
-    const trimmedName = name.trim()
-    const trimmedDescription = description.trim()
-
-    if (trimmedName.length < 2) {
-      setErrorMessage('데이터셋 이름은 2글자 이상 입력해주세요.')
+    if (!form.name.trim()) {
+      setErrorMessage('데이터셋 이름을 입력해주세요.')
       return
     }
 
+    setErrorMessage('')
+
     try {
       await createDataset({
-        name: trimmedName,
-        description: trimmedDescription,
+        name: form.name.trim(),
+        description: form.description.trim(),
       })
 
-      setName('')
-      setDescription('')
-      setIsCreateOpen(false)
+      setForm(INITIAL_FORM_STATE)
     } catch {
       setErrorMessage('데이터셋 생성에 실패했습니다.')
     }
   }
 
-  const handleDelete = async (datasetId: number) => {
-    const confirmed = window.confirm('정말 이 데이터셋을 삭제할까요?')
+  const handleDeleteDataset = async (datasetId: number) => {
+    const confirmed = window.confirm(
+      '이 데이터셋을 삭제할까요? 연결된 영상과 프레임도 함께 삭제될 수 있습니다.',
+    )
 
     if (!confirmed) return
 
@@ -103,165 +104,153 @@ function DatasetListPage() {
   }
 
   return (
-    <section>
+    <section className="dataset-list-page">
       <div className="page-header">
         <div>
-          <span className="eyebrow">Dataset Dashboard</span>
-          <h1>내 데이터셋</h1>
-          <p>영상, 프레임, 라벨, Bounding Box를 프로젝트 단위로 관리합니다.</p>
+          <span className="eyebrow">데이터셋 작업 공간</span>
+          <h1>데이터셋 관리</h1>
+          <p>
+            영상 업로드, 프레임 추출, 라벨링, 바운딩 박스 작업을 수행할
+            데이터셋 프로젝트를 생성하고 관리합니다.
+          </p>
         </div>
 
-        <button
-          className="button primary"
-          type="button"
-          onClick={() => setIsCreateOpen((prev) => !prev)}
-        >
-          {isCreateOpen ? '닫기' : '새 데이터셋 만들기'}
-        </button>
+        <Link to="/upload" className="button primary">
+          영상 업로드
+        </Link>
+      </div>
+
+      <div className="dataset-dashboard-grid">
+        <article className="dashboard-metric-card">
+          <span>전체 데이터셋</span>
+          <strong>{datasets.length}</strong>
+          <p>생성된 프로젝트 수</p>
+        </article>
+
+        <article className="dashboard-metric-card">
+          <span>전체 영상</span>
+          <strong>{totalVideoCount}</strong>
+          <p>업로드된 원본 영상</p>
+        </article>
+
+        <article className="dashboard-metric-card">
+          <span>전체 프레임</span>
+          <strong>{totalFrameCount}</strong>
+          <p>추출된 학습 후보 이미지</p>
+        </article>
+
+        <article className="dashboard-metric-card">
+          <span>작업 상태</span>
+          <strong>{isLoading ? '확인 중' : '준비 완료'}</strong>
+          <p>라벨링 작업 가능</p>
+        </article>
       </div>
 
       {errorMessage && <div className="alert error">{errorMessage}</div>}
 
-      <div className="dashboard-summary-grid">
-        <article className="summary-card">
-          <strong>{datasets.length}</strong>
-          <span>Datasets</span>
-        </article>
-
-        <article className="summary-card">
-          <strong>{totalVideos}</strong>
-          <span>Videos</span>
-        </article>
-
-        <article className="summary-card">
-          <strong>{totalFrames}</strong>
-          <span>Frames</span>
-        </article>
-      </div>
-
-      {isCreateOpen && (
-        <form className="dataset-create-form" onSubmit={handleCreate}>
-          <div>
-            <h2>새 데이터셋 생성</h2>
-            <p>도로, 터널, 화재, 연기, 차량 등화류 데이터를 프로젝트 단위로 관리하세요.</p>
+      <div className="dataset-workspace-layout">
+        <article className="dataset-create-panel">
+          <div className="panel-header">
+            <div>
+              <span className="eyebrow">새 프로젝트</span>
+              <h2>데이터셋 생성</h2>
+              <p>
+                도로·터널 화재 감지 모델 학습에 사용할 데이터셋 단위를
+                생성합니다.
+              </p>
+            </div>
           </div>
 
-          <label>
-            데이터셋 이름
+          <form onSubmit={handleCreateDataset}>
+            <label>
+              데이터셋 이름
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="예: 터널 화재 주간 데이터셋"
+              />
+            </label>
+
+            <label>
+              설명
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="데이터셋 목적, 수집 조건, 주의사항 등을 적어주세요."
+              />
+            </label>
+
+            <button type="submit" className="button primary">
+              데이터셋 생성
+            </button>
+          </form>
+        </article>
+
+        <article className="dataset-list-panel">
+          <div className="panel-header">
+            <div>
+              <span className="eyebrow">프로젝트 목록</span>
+              <h2>내 데이터셋</h2>
+              <p>생성된 데이터셋을 선택해 프레임과 라벨링 상태를 확인합니다.</p>
+            </div>
+
             <input
-              type="text"
-              placeholder="예: Tunnel Fire Dataset"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-              minLength={2}
+              className="dataset-search-input"
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder="데이터셋 검색"
             />
-          </label>
-
-          <label>
-            설명
-            <textarea
-              placeholder="예: 터널 내부 화재 및 연기 감지 학습용 데이터셋"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </label>
-
-          <div className="card-actions">
-            <button type="submit" className="button primary" disabled={isLoading}>
-              {isLoading ? '생성 중...' : '생성하기'}
-            </button>
-
-            <button
-              type="button"
-              className="button secondary"
-              onClick={() => setIsCreateOpen(false)}
-            >
-              취소
-            </button>
           </div>
-        </form>
-      )}
 
-      <div className="search-box">
-        <input
-          type="search"
-          placeholder="데이터셋 이름 또는 설명으로 검색"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
+          {isLoading ? (
+            <div className="dataset-empty-state">
+              <h3>데이터셋을 불러오는 중입니다</h3>
+              <p>잠시만 기다려주세요.</p>
+            </div>
+          ) : filteredDatasets.length === 0 ? (
+            <div className="dataset-empty-state">
+              <h3>표시할 데이터셋이 없습니다</h3>
+              <p>새 데이터셋을 생성하거나 검색어를 변경해주세요.</p>
+            </div>
+          ) : (
+            <div className="dataset-list-grid">
+              {filteredDatasets.map((dataset) => (
+                <article className="dataset-card" key={dataset.id}>
+                  <div className="dataset-card-header">
+                    <div>
+                      <h2>{dataset.name}</h2>
+                      <p>{dataset.description || '설명이 없습니다.'}</p>
+                    </div>
+                  </div>
 
-      {isLoading && <p className="loading-text">불러오는 중...</p>}
+                  <div className="dataset-meta">
+                    <span>영상 {dataset.video_count ?? 0}개</span>
+                    <span>프레임 {dataset.frame_count ?? 0}장</span>
+                  </div>
 
-      <div className="grid">
-        {filteredDatasets.length === 0 && !isLoading ? (
-          <article className="dataset-card empty">
-            <h2>
-              {datasets.length === 0
-                ? '아직 데이터셋이 없습니다'
-                : '검색 결과가 없습니다'}
-            </h2>
+                  <div className="dataset-card-actions">
+                    <Link
+                      to={`/datasets/${dataset.id}`}
+                      className="button primary"
+                    >
+                      작업 열기
+                    </Link>
 
-            <p>
-              {datasets.length === 0
-                ? '새 데이터셋을 만들고 영상을 업로드해보세요.'
-                : '검색어를 변경하거나 새 데이터셋을 생성해보세요.'}
-            </p>
-
-            <button
-              type="button"
-              className="button primary"
-              onClick={() => setIsCreateOpen(true)}
-            >
-              데이터셋 만들기
-            </button>
-          </article>
-        ) : (
-          filteredDatasets.map((dataset) => (
-            <article className="dataset-card" key={dataset.id}>
-              <div className="dataset-card-header">
-                <span className="badge">Dataset</span>
-                <small>{formatDate(dataset.created_at)}</small>
-              </div>
-
-              <h2>{dataset.name}</h2>
-
-              <p>{dataset.description || '설명이 없습니다.'}</p>
-
-              <div className="dataset-meta">
-                <span>🎥 영상 {dataset.video_count ?? 0}개</span>
-                <span>🖼 프레임 {dataset.frame_count ?? 0}장</span>
-              </div>
-
-              <div className="card-actions">
-                <button
-                  type="button"
-                  className="button primary"
-                  onClick={() => navigate(`/datasets/${dataset.id}`)}
-                >
-                  상세 보기
-                </button>
-
-                <button
-                  type="button"
-                  className="button secondary"
-                  onClick={() => navigate('/upload')}
-                >
-                  영상 업로드
-                </button>
-
-                <button
-                  type="button"
-                  className="button danger"
-                  onClick={() => handleDelete(dataset.id)}
-                >
-                  삭제
-                </button>
-              </div>
-            </article>
-          ))
-        )}
+                    <button
+                      type="button"
+                      className="button danger"
+                      onClick={() => handleDeleteDataset(dataset.id)}
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </article>
       </div>
     </section>
   )
