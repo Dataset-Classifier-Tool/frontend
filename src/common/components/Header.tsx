@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuthStore } from '../../stores/authStore'
 
@@ -10,6 +10,7 @@ function Header() {
   const logout = useAuthStore((state) => state.logout)
 
   const isLoggedIn = Boolean(accessToken)
+  const isAdmin = user?.membership_type === 'admin'
 
   const handleLogout = () => {
     logout()
@@ -18,24 +19,25 @@ function Header() {
 
   return (
     <header className="header">
-      <Link to="/" className="logo">
+      <Link to="/" className="logo" aria-label="홈으로 이동">
         <strong>데이터셋 분류 도구</strong>
         <span>AI 학습 데이터 제작 플랫폼</span>
       </Link>
 
-      <nav className="nav">
-        <Link to="/datasets">데이터셋</Link>
-        <Link to="/upload">영상 업로드</Link>
-        <Link to="/pricing">요금제</Link>
+      <nav className="nav header-main-nav" aria-label="주요 메뉴">
+        <NavLink to="/datasets">데이터셋</NavLink>
+        <NavLink to="/upload">영상 업로드</NavLink>
+        <NavLink to="/pricing">요금제</NavLink>
 
-        {isLoggedIn && <Link to="/admin/users">관리자</Link>}
+        {isLoggedIn && isAdmin && <NavLink to="/admin/users">관리자</NavLink>}
       </nav>
 
-      <div className="nav">
+      <div className="nav header-auth-nav">
         {isLoggedIn ? (
           <>
-            <span className="header-user-name">
-              {user?.name || user?.email || '사용자'}
+            <span className="header-user-chip">
+              <strong>{user?.name || user?.email || '사용자'}</strong>
+              <small>{isAdmin ? '관리자' : user?.membership_type || '회원'}</small>
             </span>
 
             <button type="button" onClick={handleLogout}>
@@ -44,8 +46,8 @@ function Header() {
           </>
         ) : (
           <>
-            <Link to="/login">로그인</Link>
-            <Link to="/register">회원가입</Link>
+            <NavLink to="/login">로그인</NavLink>
+            <NavLink to="/register">회원가입</NavLink>
           </>
         )}
       </div>

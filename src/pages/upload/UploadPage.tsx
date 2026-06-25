@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ChangeEvent, DragEvent, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { getDatasetsApi } from '../../common/api/datasetApi'
@@ -16,6 +16,7 @@ type TargetWidthOption = 'original' | '640' | '960' | '1280'
 
 function UploadPage() {
   const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [datasetId, setDatasetId] = useState('')
@@ -25,6 +26,7 @@ function UploadPage() {
   const [targetWidth, setTargetWidth] = useState<TargetWidthOption>('640')
   const [autoLabel, setAutoLabel] = useState(true)
 
+  const [isDragging, setIsDragging] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -46,6 +48,17 @@ function UploadPage() {
   const selectedDataset = datasets.find(
     (dataset) => dataset.id === Number(datasetId),
   )
+
+  const selectedFileSizeMb = useMemo(() => {
+    if (!file) return 0
+    return file.size / 1024 / 1024
+  }, [file])
+
+  const estimatedFramesText = useMemo(() => {
+    if (!file) return '영상 선택 후 확인 가능'
+
+    return `${frameIntervalSeconds}초마다 1장 추출`
+  }, [file, frameIntervalSeconds])
 
   const validateFile = (selectedFile: File | null) => {
     if (!selectedFile) return '업로드할 영상 파일을 선택해주세요.'
@@ -79,6 +92,55 @@ function UploadPage() {
     }
 
     return null
+  }
+
+  const applySelectedFile = (selectedFile: File | null) => {
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    const fileError = validateFile(selectedFile)
+
+    if (fileError) {
+      setFile(null)
+      setErrorMessage(fileError)
+      return
+    }
+
+    setFile(selectedFile)
+  }
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] ?? null
+    applySelectedFile(selectedFile)
+  }
+
+  const handleDropzoneClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(false)
+
+    const droppedFile = event.dataTransfer.files?.[0] ?? null
+    applySelectedFile(droppedFile)
+  }
+
+  const clearSelectedFile = () => {
+    setFile(null)
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   const decreaseInterval = () => {
@@ -140,7 +202,7 @@ function UploadPage() {
         `영상 업로드 성공! 추출 프레임 ${response.data.extracted_frame_count}개${widthText}${autoLabelText}`,
       )
 
-      setFile(null)
+      clearSelectedFile()
 
       setTimeout(() => {
         navigate(`/datasets/${datasetId}`)
@@ -208,16 +270,33 @@ function UploadPage() {
 
           <label>
             영상 파일 선택 <span className="field-hint">(MP4 권장)</span>
-            <div className={file ? 'modern-dropzone selected' : 'modern-dropzone'}>
+
+            <div
+              className={[
+                'modern-dropzone',
+                file ? 'selected' : '',
+                isDragging ? 'dragging' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              role="button"
+              tabIndex={0}
+              onClick={handleDropzoneClick}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  handleDropzoneClick()
+                }
+              }}
+            >
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".mp4,.avi,.mov,.mkv,.webm"
-                onChange={(event) => {
-                  const selectedFile = event.target.files?.[0] ?? null
-                  setFile(selectedFile)
-                  setErrorMessage('')
-                  setSuccessMessage('')
-                }}
+                onChange={handleFileChange}
+                hidden
               />
 
               <div className="dropzone-icon">⬆</div>
@@ -236,7 +315,11 @@ function UploadPage() {
             <div className="selected-file-row">
               <span>선택된 파일</span>
               <strong>{file.name}</strong>
-              <em>{(file.size / 1024 / 1024).toFixed(2)}MB</em>
+              <em>{selectedFileSizeMb.toFixed(2)}MB</em>
+
+              <button type="button" className="button secondary" onClick={clearSelectedFile}>
+                제거
+              </button>
             </div>
           )}
 
@@ -289,6 +372,23 @@ function UploadPage() {
             />
             <span>업로드 후 AI 자동 라벨링 실행</span>
           </label>
+
+          <div className="upload-summary-box">
+            <div>
+              <span>선택 데이터셋</span>
+              <strong>{selectedDataset?.name || '선택 필요'}</strong>
+            </div>
+
+            <div>
+              <span>추출 간격</span>
+              <strong>{frameIntervalSeconds}초</strong>
+            </div>
+
+            <div>
+              <span>예상 작업</span>
+              <strong>{estimatedFramesText}</strong>
+            </div>
+          </div>
 
           <button
             type="submit"
@@ -352,6 +452,15 @@ function UploadPage() {
                 <p>좌측에서 데이터셋을 선택해주세요.</p>
               </>
             )}
+          </article>
+
+          <article className="upload-side-card compact">
+            <span className="eyebrow">업로드 조건</span>
+            <h2>권장 설정</h2>
+            <p>
+              해커톤 시연용 데이터는 3초 간격, 640px 저장, 자동 라벨링 활성화
+              설정이 가장 무난합니다.
+            </p>
           </article>
 
           <article className="upload-side-card compact result">
