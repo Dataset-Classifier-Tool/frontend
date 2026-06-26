@@ -1,23 +1,22 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import App from './App'
-
+import AppLayout from '../common/components/layout/AppLayout'
 import ProtectedRoute from '../common/components/ProtectedRoute'
 
 import HomePage from '../pages/home/HomePage'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
+import OAuthCallbackPage from '../pages/oauth/OAuthCallbackPage'
 import DatasetListPage from '../pages/dataset/DatasetListPage'
 import DatasetDetailPage from '../pages/dataset/DatasetDetailPage'
 import UploadPage from '../pages/upload/UploadPage'
 import PricingPage from '../pages/pricing/PricingPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
-import OAuthCallbackPage from '../pages/oauth/OAuthCallbackPage'
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
+    element: <AppLayout />,
     children: [
       {
         index: true,
@@ -32,6 +31,10 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
+        path: 'oauth/callback',
+        element: <OAuthCallbackPage />,
+      },
+      {
         path: 'datasets',
         element: (
           <ProtectedRoute>
@@ -40,7 +43,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'datasets/:datasetId',
+        path: 'datasets/:id',
         element: (
           <ProtectedRoute>
             <DatasetDetailPage />
@@ -62,14 +65,10 @@ export const router = createBrowserRouter([
       {
         path: 'admin/users',
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute requireAdmin>
             <AdminUsersPage />
           </ProtectedRoute>
         ),
-      },
-      {
-        path: 'oauth/callback',
-        element: <OAuthCallbackPage />,
       },
     ],
   },

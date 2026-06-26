@@ -1,31 +1,40 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, DragEvent, FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { getDatasetsApi } from '../../common/api/datasetApi'
 import { uploadVideoApi } from '../../common/api/uploadApi'
-
+import {
+  Page,
+  PageHeader,
+  StatCard,
+  StatsGrid,
+} from '../../common/components/ui'
 import type { Dataset } from '../../types/dataset'
+
+import UploadDropZone from './components/UploadDropZone'
+import UploadFlowPanel from './components/UploadFlowPanel'
+import UploadSettingsGrid from './components/UploadSettingsGrid'
+import UploadSummaryPanel from './components/UploadSummaryPanel'
 
 const ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'avi', 'mov', 'mkv', 'webm']
 const MAX_FILE_SIZE_MB = 500
 const MIN_FRAME_INTERVAL = 1
 const MAX_FRAME_INTERVAL = 60
 
-type TargetWidthOption = 'original' | '640' | '960' | '1280'
+type TargetWidthOption = 'original' | '640' | '960' | '1280' | '1920'
 
 function UploadPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [datasetId, setDatasetId] = useState('')
   const [file, setFile] = useState<File | null>(null)
-
   const [frameIntervalSeconds, setFrameIntervalSeconds] = useState(3)
   const [targetWidth, setTargetWidth] = useState<TargetWidthOption>('640')
   const [autoLabel, setAutoLabel] = useState(true)
-
   const [isDragging, setIsDragging] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -34,30 +43,37 @@ function UploadPage() {
   useEffect(() => {
     getDatasetsApi()
       .then((response) => {
-        setDatasets(response.data)
+        const datasetList = response.data
+        const queryDatasetId = searchParams.get('datasetId')
 
-        if (response.data.length > 0) {
-          setDatasetId(String(response.data[0].id))
+        setDatasets(datasetList)
+
+        if (queryDatasetId) {
+          setDatasetId(queryDatasetId)
+          return
+        }
+
+        if (datasetList.length > 0) {
+          setDatasetId(String(datasetList[0].id))
         }
       })
       .catch(() => {
         setErrorMessage('데이터셋 목록을 불러오지 못했습니다.')
       })
-  }, [])
+  }, [searchParams])
 
-  const selectedDataset = datasets.find(
-    (dataset) => dataset.id === Number(datasetId),
-  )
+  const selectedDataset = datasets.find((dataset) => dataset.id === Number(datasetId))
 
   const selectedFileSizeMb = useMemo(() => {
-    if (!file) return 0
-    return file.size / 1024 / 1024
+    return file ? file.size / 1024 / 1024 : 0
+  }, [file])
+
+  const selectedFileExtension = useMemo(() => {
+    return file?.name.split('.').pop()?.toUpperCase() || '선택 전'
   }, [file])
 
   const estimatedFramesText = useMemo(() => {
-    if (!file) return '영상 선택 후 확인 가능'
-
-    return `${frameIntervalSeconds}초마다 1장 추출`
+    return file ? `${frameIntervalSeconds}초마다 1장 추출` : '영상 선택 후 확인 가능'
   }, [file, frameIntervalSeconds])
 
   const validateFile = (selectedFile: File | null) => {
@@ -109,32 +125,6 @@ function UploadPage() {
     setFile(selectedFile)
   }
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0] ?? null
-    applySelectedFile(selectedFile)
-  }
-
-  const handleDropzoneClick = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = () => {
-    setIsDragging(false)
-  }
-
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    setIsDragging(false)
-
-    const droppedFile = event.dataTransfer.files?.[0] ?? null
-    applySelectedFile(droppedFile)
-  }
-
   const clearSelectedFile = () => {
     setFile(null)
 
@@ -143,17 +133,15 @@ function UploadPage() {
     }
   }
 
-  const decreaseInterval = () => {
-    setFrameIntervalSeconds((prev) => Math.max(MIN_FRAME_INTERVAL, prev - 1))
+  const handleFrameIntervalChange = (value: number) => {
+    if (Number.isNaN(value)) return
+
+    setFrameIntervalSeconds(
+      Math.min(MAX_FRAME_INTERVAL, Math.max(MIN_FRAME_INTERVAL, value)),
+    )
   }
 
-  const increaseInterval = () => {
-    setFrameIntervalSeconds((prev) => Math.min(MAX_FRAME_INTERVAL, prev + 1))
-  }
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  const handleUpload = async () => {
     setErrorMessage('')
     setSuccessMessage('')
 
@@ -204,54 +192,83 @@ function UploadPage() {
 
       clearSelectedFile()
 
-      setTimeout(() => {
+      window.setTimeout(() => {
         navigate(`/datasets/${datasetId}`)
-      }, 1200)
+      }, 1000)
     } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message || '영상 업로드 중 오류가 발생했습니다.',
-      )
+      setErrorMessage(error.response?.data?.message || '영상 업로드 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <section className="upload-modern-page">
-      <div className="upload-modern-header">
-        <div>
-          <span className="eyebrow">영상 업로드</span>
-          <h1>학습 후보 프레임 추출</h1>
-          <p>
-            원본 영상에서 일정 간격으로 프레임을 추출하고, 선택한 데이터셋에
-            학습 후보 이미지로 저장합니다.
-          </p>
-        </div>
+    <Page className="upload-page">
+      <PageHeader
+        badge="Upload Studio"
+        title="영상 업로드"
+        description="원천 영상을 선택한 데이터셋에 업로드하고, 일정 간격으로 프레임을 추출해 학습 후보 이미지로 저장합니다."
+        actions={
+          <>
+            <Link to="/datasets" className="ui-button ui-button-secondary">
+              데이터셋 목록
+            </Link>
 
-        <Link to="/datasets" className="button secondary">
-          ← 데이터셋 목록
-        </Link>
-      </div>
+            <Link to="/" className="ui-button ui-button-secondary">
+              대시보드
+            </Link>
+          </>
+        }
+      />
 
-      {errorMessage && <div className="alert error">{errorMessage}</div>}
-      {successMessage && <div className="alert success">{successMessage}</div>}
+      {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
+      {successMessage && <div className="upload-success">{successMessage}</div>}
 
-      <div className="upload-modern-layout">
-        <form className="upload-modern-card" onSubmit={handleSubmit}>
-          <div className="panel-header">
-            <div>
-              <span className="eyebrow">업로드 설정</span>
-              <h2>영상 파일 선택</h2>
-              <p>
-                데이터셋을 선택한 뒤 영상을 업로드하면 프레임 추출과 자동
-                라벨링을 한 번에 실행할 수 있습니다.
-              </p>
-            </div>
+      <StatsGrid>
+        <StatCard
+          label="선택 데이터셋"
+          value={selectedDataset?.name || '선택 필요'}
+          help="프레임이 저장될 프로젝트"
+        />
+
+        <StatCard
+          label="파일 형식"
+          value={selectedFileExtension}
+          help="지원 영상 포맷"
+        />
+
+        <StatCard
+          label="파일 크기"
+          value={file ? `${selectedFileSizeMb.toFixed(1)}MB` : '선택 필요'}
+          help={`최대 ${MAX_FILE_SIZE_MB}MB`}
+        />
+
+        <StatCard
+          label="추출 간격"
+          value={`${frameIntervalSeconds}초`}
+          help={estimatedFramesText}
+        />
+      </StatsGrid>
+
+      <div className="upload-layout">
+        <main className="upload-main-panel ui-card">
+          <div className="upload-section-head">
+            <span className="ui-badge ui-badge-primary">Upload Settings</span>
+            <h2>원천 영상 선택</h2>
+            <p>
+              데이터셋, 추출 간격, 저장 해상도, 자동 라벨링 여부를 설정한 뒤
+              업로드를 시작합니다.
+            </p>
           </div>
 
-          <label>
-            저장할 데이터셋
+          <div className="ui-form-group">
+            <label className="ui-label" htmlFor="upload-dataset">
+              저장할 데이터셋 <span className="ui-required">*</span>
+            </label>
+
             <select
+              id="upload-dataset"
+              className="ui-select"
               value={datasetId}
               onChange={(event) => setDatasetId(event.target.value)}
               required
@@ -266,214 +283,45 @@ function UploadPage() {
                 ))
               )}
             </select>
-          </label>
-
-          <label>
-            영상 파일 선택 <span className="field-hint">(MP4 권장)</span>
-
-            <div
-              className={[
-                'modern-dropzone',
-                file ? 'selected' : '',
-                isDragging ? 'dragging' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              role="button"
-              tabIndex={0}
-              onClick={handleDropzoneClick}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  handleDropzoneClick()
-                }
-              }}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".mp4,.avi,.mov,.mkv,.webm"
-                onChange={handleFileChange}
-                hidden
-              />
-
-              <div className="dropzone-icon">⬆</div>
-
-              <strong>
-                {file
-                  ? file.name
-                  : '여기에 영상을 드래그하거나 클릭해서 선택하세요'}
-              </strong>
-
-              <p>MP4, MOV, AVI, MKV, WEBM 파일을 지원합니다.</p>
-            </div>
-          </label>
-
-          {file && (
-            <div className="selected-file-row">
-              <span>선택된 파일</span>
-              <strong>{file.name}</strong>
-              <em>{selectedFileSizeMb.toFixed(2)}MB</em>
-
-              <button type="button" className="button secondary" onClick={clearSelectedFile}>
-                제거
-              </button>
-            </div>
-          )}
-
-          <label>
-            프레임 추출 간격
-            <div className="interval-control">
-              <button type="button" onClick={decreaseInterval}>
-                −
-              </button>
-
-              <input
-                type="number"
-                min={MIN_FRAME_INTERVAL}
-                max={MAX_FRAME_INTERVAL}
-                value={frameIntervalSeconds}
-                onChange={(event) =>
-                  setFrameIntervalSeconds(Number(event.target.value))
-                }
-              />
-
-              <button type="button" onClick={increaseInterval}>
-                +
-              </button>
-            </div>
-            <small>
-              예: 3초로 설정하면 영상에서 3초마다 1장의 프레임을 추출합니다.
-            </small>
-          </label>
-
-          <label>
-            프레임 저장 해상도
-            <select
-              value={targetWidth}
-              onChange={(event) =>
-                setTargetWidth(event.target.value as TargetWidthOption)
-              }
-            >
-              <option value="original">원본 유지</option>
-              <option value="640">640px</option>
-              <option value="960">960px</option>
-              <option value="1280">1280px</option>
-            </select>
-          </label>
-
-          <label className="modern-check-row">
-            <input
-              type="checkbox"
-              checked={autoLabel}
-              onChange={(event) => setAutoLabel(event.target.checked)}
-            />
-            <span>업로드 후 AI 자동 라벨링 실행</span>
-          </label>
-
-          <div className="upload-summary-box">
-            <div>
-              <span>선택 데이터셋</span>
-              <strong>{selectedDataset?.name || '선택 필요'}</strong>
-            </div>
-
-            <div>
-              <span>추출 간격</span>
-              <strong>{frameIntervalSeconds}초</strong>
-            </div>
-
-            <div>
-              <span>예상 작업</span>
-              <strong>{estimatedFramesText}</strong>
-            </div>
           </div>
 
-          <button
-            type="submit"
-            className="button primary full"
-            disabled={isLoading || datasets.length === 0}
-          >
-            {isLoading ? '업로드 및 프레임 추출 중...' : '영상 업로드 시작'}
-          </button>
-        </form>
+          <UploadDropZone
+            file={file}
+            fileInputRef={fileInputRef}
+            isDragging={isDragging}
+            selectedFileSizeMb={selectedFileSizeMb}
+            maxFileSizeMb={MAX_FILE_SIZE_MB}
+            onFileChange={applySelectedFile}
+            onClearFile={clearSelectedFile}
+            onDraggingChange={setIsDragging}
+          />
 
-        <aside className="upload-side-stack">
-          <article className="upload-side-card">
-            <span className="eyebrow">작업 흐름 안내</span>
-            <h2>프레임 추출 흐름</h2>
+          <UploadSettingsGrid
+            frameIntervalSeconds={frameIntervalSeconds}
+            targetWidth={targetWidth}
+            autoLabel={autoLabel}
+            isUploading={isLoading}
+            onFrameIntervalChange={handleFrameIntervalChange}
+            onTargetWidthChange={(value) => setTargetWidth(value as TargetWidthOption)}
+            onAutoLabelChange={setAutoLabel}
+            onUpload={handleUpload}
+          />
+        </main>
 
-            <div className="upload-step-list">
-              <div className="upload-step-item">
-                <strong>1</strong>
-                <div>
-                  <h3>데이터셋 선택</h3>
-                  <p>업로드한 영상을 저장할 프로젝트를 선택합니다.</p>
-                </div>
-              </div>
+        <aside className="upload-side-panel">
+          <UploadSummaryPanel
+            selectedDataset={selectedDataset}
+            file={file}
+            selectedFileSizeMb={selectedFileSizeMb}
+            frameIntervalSeconds={frameIntervalSeconds}
+            targetWidth={targetWidth}
+            autoLabel={autoLabel}
+          />
 
-              <div className="upload-step-item">
-                <strong>2</strong>
-                <div>
-                  <h3>영상 업로드</h3>
-                  <p>도로, 터널, 화재, 연기 관련 원본 영상을 업로드합니다.</p>
-                </div>
-              </div>
-
-              <div className="upload-step-item">
-                <strong>3</strong>
-                <div>
-                  <h3>프레임 자동 추출</h3>
-                  <p>설정한 간격에 따라 학습 후보 이미지를 생성합니다.</p>
-                </div>
-              </div>
-
-              <div className="upload-step-item">
-                <strong>4</strong>
-                <div>
-                  <h3>라벨링 진행</h3>
-                  <p>추출된 프레임을 확인하고 라벨을 지정합니다.</p>
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <article className="upload-side-card compact">
-            <span className="eyebrow">선택된 데이터셋</span>
-            {selectedDataset ? (
-              <>
-                <h2>{selectedDataset.name}</h2>
-                <p>{selectedDataset.description || '설명이 없습니다.'}</p>
-              </>
-            ) : (
-              <>
-                <h2>선택된 데이터셋 없음</h2>
-                <p>좌측에서 데이터셋을 선택해주세요.</p>
-              </>
-            )}
-          </article>
-
-          <article className="upload-side-card compact">
-            <span className="eyebrow">업로드 조건</span>
-            <h2>권장 설정</h2>
-            <p>
-              해커톤 시연용 데이터는 3초 간격, 640px 저장, 자동 라벨링 활성화
-              설정이 가장 무난합니다.
-            </p>
-          </article>
-
-          <article className="upload-side-card compact result">
-            <span className="eyebrow">업로드 결과</span>
-            <h2>{successMessage ? '업로드 완료' : '대기 중'}</h2>
-            <p>
-              {successMessage ||
-                '아직 업로드된 영상이 없습니다. 영상을 업로드해보세요.'}
-            </p>
-          </article>
+          <UploadFlowPanel />
         </aside>
       </div>
-    </section>
+    </Page>
   )
 }
 

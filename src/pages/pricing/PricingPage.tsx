@@ -1,76 +1,168 @@
+import { Link } from 'react-router-dom'
+
+import { Page, PageHeader } from '../../common/components/ui'
+
+type Plan = {
+  name: string
+  badge: string
+  price: string
+  description: string
+  features: string[]
+  highlighted?: boolean
+}
+
+const PLANS: Plan[] = [
+  {
+    name: 'Free',
+    badge: 'Starter',
+    price: '무료',
+    description: '개인 프로젝트와 기능 테스트에 적합한 기본 플랜입니다.',
+    features: [
+      '기본 데이터셋 생성',
+      '영상 업로드 및 프레임 추출',
+      '수동 라벨링',
+      '일반 ZIP Export',
+      '하루 10회 작업 제한',
+    ],
+  },
+  {
+    name: 'Premium',
+    badge: 'Recommended',
+    price: '월 구독',
+    description: '본격적인 데이터셋 제작과 자동화 기능을 위한 플랜입니다.',
+    highlighted: true,
+    features: [
+      'Free 기능 전체 포함',
+      '하루 100회 작업 가능',
+      'AI 자동 라벨링',
+      'YOLO Export',
+      'Bounding Box 편집',
+      '우선 기능 업데이트',
+    ],
+  },
+  {
+    name: 'Admin',
+    badge: 'Operator',
+    price: '관리자',
+    description: '플랫폼 운영, 회원 관리, 사용량 제어를 위한 관리자 권한입니다.',
+    features: [
+      '회원 목록 조회',
+      '회원 등급 변경',
+      '계정 활성화 / 비활성화',
+      '사용량 정책 관리',
+      '전체 데이터셋 운영 관리',
+    ],
+  },
+]
+
 function PricingPage() {
   return (
-    <section>
-      <div className="pricing-hero">
-        <span className="eyebrow">Pricing</span>
-        <h1>요금제</h1>
-        <p>
-          데이터셋 규모와 자동화 수준에 맞춰 플랜을 선택하세요.
-          현재는 MVP 시연용 정책 기준입니다.
-        </p>
-      </div>
+    <Page className="pricing-page">
+      <PageHeader
+        badge="Membership"
+        title="회원 등급"
+        description="데이터셋 제작 규모와 자동화 수준에 따라 사용할 수 있는 기능을 구분합니다."
+        actions={
+          <Link to="/datasets" className="ui-button ui-button-primary">
+            데이터셋 시작하기
+          </Link>
+        }
+      />
 
-      <div className="pricing-grid">
-        <article className="pricing-card">
-          <div className="pricing-card-header">
-            <span className="pricing-badge free">Starter</span>
-            <h2>Free</h2>
-            <p>개인 테스트와 소규모 라벨링에 적합합니다.</p>
+      <section className="pricing-hero ui-card">
+        <div>
+          <span className="ui-badge ui-badge-primary">Scale your dataset</span>
+          <h2>라벨링 작업이 커질수록 자동화가 중요해집니다.</h2>
+          <p>
+            Free 플랜으로 기본 흐름을 검증하고, Premium 플랜에서 자동 라벨링과
+            YOLO Export를 연결해 실제 학습 파이프라인으로 확장할 수 있습니다.
+          </p>
+        </div>
+
+        <div className="pricing-hero-metric">
+          <strong>10x</strong>
+          <span>Premium 작업 한도</span>
+        </div>
+      </section>
+
+      <section className="pricing-grid">
+        {PLANS.map((plan) => (
+          <article
+            className={`pricing-card ui-card ${
+              plan.highlighted ? 'is-highlighted' : ''
+            }`}
+            key={plan.name}
+          >
+            <div className="pricing-card-header">
+              <span
+                className={`ui-badge ${
+                  plan.highlighted ? 'ui-badge-primary' : ''
+                }`}
+              >
+                {plan.badge}
+              </span>
+
+              <h2>{plan.name}</h2>
+
+              <strong>{plan.price}</strong>
+
+              <p>{plan.description}</p>
+            </div>
+
+            <ul className="pricing-feature-list">
+              {plan.features.map((feature) => (
+                <li key={feature}>
+                  <span>✓</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              to={plan.name === 'Admin' ? '/admin/users' : '/datasets'}
+              className={`ui-button ${
+                plan.highlighted ? 'ui-button-primary' : 'ui-button-secondary'
+              } pricing-card-button`}
+            >
+              {plan.name === 'Admin' ? '관리자 페이지' : '시작하기'}
+            </Link>
+          </article>
+        ))}
+      </section>
+
+      <section className="pricing-policy ui-card">
+        <div>
+          <span className="ui-badge ui-badge-primary">Policy</span>
+          <h2>현재 적용 예정 정책</h2>
+          <p>
+            초기 MVP에서는 기능 검증을 우선하며, 이후 사용량 제한과 자동 라벨링
+            권한을 백엔드 정책과 연결합니다.
+          </p>
+        </div>
+
+        <div className="pricing-policy-grid">
+          <div>
+            <span>Free</span>
+            <strong>10회 / 일</strong>
           </div>
 
-          <div className="pricing-price">
-            ₩0
-            <span>/ month</span>
+          <div>
+            <span>Premium</span>
+            <strong>100회 / 일</strong>
           </div>
 
-          <ul className="pricing-feature-list">
-            <li>하루 10회 분류</li>
-            <li>수동 라벨링</li>
-            <li>기본 데이터셋 관리</li>
-            <li>라벨별 ZIP 다운로드</li>
-          </ul>
-
-          <button type="button" className="button secondary full">
-            현재 플랜
-          </button>
-        </article>
-
-        <article className="pricing-card featured">
-          <div className="pricing-recommend">추천</div>
-
-          <div className="pricing-card-header">
-            <span className="pricing-badge premium">Professional</span>
-            <h2>Premium</h2>
-            <p>AI 자동 라벨링과 Export 기능을 활용하는 플랜입니다.</p>
+          <div>
+            <span>Auto Labeling</span>
+            <strong>Premium 이상</strong>
           </div>
 
-          <div className="pricing-price">
-            출시 예정
-            <span>coming soon</span>
+          <div>
+            <span>Admin Control</span>
+            <strong>관리자 전용</strong>
           </div>
-
-          <ul className="pricing-feature-list">
-            <li>하루 100회 분류</li>
-            <li>AI 자동 라벨링</li>
-            <li>Bounding Box 관리</li>
-            <li>YOLO / COCO Export</li>
-            <li>프리미엄 데이터셋 워크플로우</li>
-          </ul>
-
-          <button type="button" className="button primary full">
-            준비 중
-          </button>
-        </article>
-      </div>
-
-      <div className="pricing-note-card">
-        <strong>향후 확장 예정</strong>
-        <p>
-          Premium 플랜에는 자동 라벨링, 대량 Export, 학습용 데이터셋 포맷 변환,
-          사용량 제한 관리 기능이 포함될 예정입니다.
-        </p>
-      </div>
-    </section>
+        </div>
+      </section>
+    </Page>
   )
 }
 

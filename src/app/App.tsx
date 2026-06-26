@@ -1,17 +1,7 @@
-import { Outlet } from 'react-router-dom'
-
-import Header from '../common/components/Header'
+import AppLayout from '../common/components/layout/AppLayout'
 
 function App() {
-  return (
-    <div className="app-shell">
-      <Header />
-
-      <main className="page">
-        <Outlet />
-      </main>
-    </div>
-  )
+  return <AppLayout />
 }
 
 export default App

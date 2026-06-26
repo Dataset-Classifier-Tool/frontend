@@ -5,9 +5,27 @@ import {
   updateUserActiveApi,
   updateUserMembershipApi,
 } from '../../common/api/adminApi'
-
+import {
+  EmptyState,
+  Page,
+  PageHeader,
+  StatCard,
+  StatsGrid,
+} from '../../common/components/ui'
 import type { MembershipType } from '../../types/auth'
 import type { AdminUser } from '../../types/user'
+
+const MEMBERSHIP_LABEL: Record<MembershipType, string> = {
+  free: '무료',
+  premium: '프리미엄',
+  admin: '관리자',
+}
+
+const MEMBERSHIP_BADGE_CLASS: Record<MembershipType, string> = {
+  free: '',
+  premium: 'ui-badge-primary',
+  admin: 'ui-badge-warning',
+}
 
 function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -37,6 +55,7 @@ function AdminUsersPage() {
 
   const filteredUsers = useMemo(() => {
     const keyword = searchKeyword.trim().toLowerCase()
+
     if (!keyword) return users
 
     return users.filter((user) => {
@@ -67,8 +86,8 @@ function AdminUsersPage() {
         membership_type: membershipType,
       })
 
-      setUsers((prev) =>
-        prev.map((user) => (user.id === userId ? response.data : user)),
+      setUsers((prevUsers) =>
+        prevUsers.map((user) => (user.id === userId ? response.data : user)),
       )
     } catch (error: any) {
       alert(error.response?.data?.message || '회원 등급 변경에 실패했습니다.')
@@ -89,8 +108,8 @@ function AdminUsersPage() {
         is_active: !user.is_active,
       })
 
-      setUsers((prev) =>
-        prev.map((item) => (item.id === user.id ? response.data : item)),
+      setUsers((prevUsers) =>
+        prevUsers.map((item) => (item.id === user.id ? response.data : item)),
       )
     } catch (error: any) {
       alert(error.response?.data?.message || '활성화 상태 변경에 실패했습니다.')
@@ -98,185 +117,153 @@ function AdminUsersPage() {
   }
 
   return (
-    <section className="admin-modern-page">
-      <div className="admin-modern-header">
-        <div>
-          <span className="eyebrow">관리자 콘솔</span>
-          <h1>회원 관리</h1>
-          <p>회원 등급, 가입 방식, 활성화 상태를 한 화면에서 관리합니다.</p>
-        </div>
+    <Page className="admin-page">
+      <PageHeader
+        badge="Admin Console"
+        title="회원 관리"
+        description="회원 등급, 가입 방식, 활성화 상태를 관리하고 플랫폼 사용 권한을 제어합니다."
+        actions={
+          <button
+            type="button"
+            className="ui-button ui-button-secondary"
+            onClick={fetchUsers}
+            disabled={isLoading}
+          >
+            {isLoading ? '새로고침 중...' : '회원 목록 새로고침'}
+          </button>
+        }
+      />
 
-        <button
-          type="button"
-          className="button secondary"
-          onClick={fetchUsers}
-          disabled={isLoading}
-        >
-          {isLoading ? '새로고침 중...' : '회원 목록 새로고침'}
-        </button>
-      </div>
+      {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
 
-      {errorMessage && <div className="alert error">{errorMessage}</div>}
+      <StatsGrid>
+        <StatCard label="전체 회원" value={totalUsers} help="등록된 계정" />
+        <StatCard label="활성 회원" value={activeUsers} help="사용 가능 계정" />
+        <StatCard label="비활성 회원" value={inactiveUsers} help="접근 제한 계정" />
+        <StatCard
+          label="프리미엄 / 관리자"
+          value={`${premiumUsers} / ${adminUsers}`}
+          help="상위 권한 계정"
+        />
+      </StatsGrid>
 
-      <div className="admin-modern-stats">
-        <article className="admin-stat-card purple">
-          <span>전체 회원</span>
-          <strong>{totalUsers}</strong>
-          <p>등록된 전체 계정</p>
-        </article>
-
-        <article className="admin-stat-card green">
-          <span>활성 회원</span>
-          <strong>{activeUsers}</strong>
-          <p>현재 사용 가능한 계정</p>
-        </article>
-
-        <article className="admin-stat-card amber">
-          <span>비활성 회원</span>
-          <strong>{inactiveUsers}</strong>
-          <p>접근 제한된 계정</p>
-        </article>
-
-        <article className="admin-stat-card blue">
-          <span>관리자</span>
-          <strong>{adminUsers}</strong>
-          <p>관리 권한 보유 계정</p>
-        </article>
-
-        <article className="admin-stat-card pink">
-          <span>프리미엄</span>
-          <strong>{premiumUsers}</strong>
-          <p>유료 등급 회원</p>
-        </article>
-      </div>
-
-      <article className="admin-modern-table-card">
-        <div className="admin-modern-toolbar">
+      <section className="admin-panel ui-card">
+        <div className="admin-toolbar">
           <div>
-            <h2>회원 목록</h2>
+            <span className="ui-badge ui-badge-primary">Users</span>
+            <h2>플랫폼 회원</h2>
             <p>
               총 {users.length}명 중 {filteredUsers.length}명이 표시됩니다.
             </p>
           </div>
 
-          <input
-            type="search"
-            value={searchKeyword}
-            onChange={(event) => setSearchKeyword(event.target.value)}
-            placeholder="이름, 닉네임, 이메일, 등급 검색"
-          />
+          <div className="ui-search admin-search">
+            <span className="ui-search-icon">⌕</span>
+            <input
+              className="ui-input"
+              type="search"
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder="이름, 닉네임, 이메일, 등급 검색"
+            />
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="admin-empty-state">
-            <strong>회원 목록을 불러오는 중입니다</strong>
-            <p>잠시만 기다려주세요.</p>
-          </div>
+          <EmptyState
+            title="회원 목록을 불러오는 중입니다"
+            description="잠시만 기다려주세요."
+          />
+        ) : filteredUsers.length === 0 ? (
+          <EmptyState
+            title="표시할 회원이 없습니다"
+            description="검색어를 변경하거나 회원 목록을 새로고침해보세요."
+          />
         ) : (
-          <div className="admin-modern-table-wrap">
-            <table className="admin-modern-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>회원 정보</th>
-                  <th>이메일</th>
-                  <th>생년월일</th>
-                  <th>가입 방식</th>
-                  <th>등급</th>
-                  <th>상태</th>
-                  <th>관리</th>
-                </tr>
-              </thead>
+          <div className="admin-user-grid">
+            {filteredUsers.map((user) => (
+              <article className="admin-user-card ui-card ui-card-hover" key={user.id}>
+                <div className="admin-user-card-top">
+                  <div className="admin-user-avatar">
+                    {user.name?.charAt(0) || user.email.charAt(0) || 'U'}
+                  </div>
 
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      <span className="admin-id-badge">#{user.id}</span>
-                    </td>
+                  <div className="admin-user-main">
+                    <strong>{user.name || '이름 없음'}</strong>
+                    <span>{user.nickname || user.email}</span>
+                  </div>
 
-                    <td>
-                      <div className="admin-user-cell">
-                        <div className="admin-user-avatar">
-                          {user.name?.charAt(0) || 'U'}
-                        </div>
+                  <span
+                    className={`ui-badge ${
+                      user.is_active ? 'ui-badge-primary' : 'ui-badge-danger'
+                    }`}
+                  >
+                    {user.is_active ? '활성' : '비활성'}
+                  </span>
+                </div>
 
-                        <div>
-                          <strong>{user.name}</strong>
-                          <span>{user.nickname || '닉네임 없음'}</span>
-                        </div>
-                      </div>
-                    </td>
+                <div className="admin-user-info">
+                  <div>
+                    <span>이메일</span>
+                    <strong>{user.email}</strong>
+                  </div>
 
-                    <td>
-                      <span className="admin-email">{user.email}</span>
-                    </td>
+                  <div>
+                    <span>가입 방식</span>
+                    <strong>{user.provider}</strong>
+                  </div>
 
-                    <td>{user.birth_date || '-'}</td>
+                  <div>
+                    <span>생년월일</span>
+                    <strong>{user.birth_date || '-'}</strong>
+                  </div>
 
-                    <td>
-                      <span className="provider-chip">{user.provider}</span>
-                    </td>
-
-                    <td>
-                      <select
-                        className="admin-select"
-                        value={user.membership_type}
-                        onChange={(event) =>
-                          handleMembershipChange(
-                            user.id,
-                            event.target.value as MembershipType,
-                          )
-                        }
+                  <div>
+                    <span>현재 등급</span>
+                    <strong>
+                      <em
+                        className={`ui-badge ${
+                          MEMBERSHIP_BADGE_CLASS[user.membership_type]
+                        }`}
                       >
-                        <option value="free">무료</option>
-                        <option value="premium">프리미엄</option>
-                        <option value="admin">관리자</option>
-                      </select>
-                    </td>
+                        {MEMBERSHIP_LABEL[user.membership_type]}
+                      </em>
+                    </strong>
+                  </div>
+                </div>
 
-                    <td>
-                      <span
-                        className={
-                          user.is_active
-                            ? 'admin-status active'
-                            : 'admin-status inactive'
-                        }
-                      >
-                        {user.is_active ? '활성' : '비활성'}
-                      </span>
-                    </td>
+                <div className="admin-user-actions">
+                  <select
+                    className="ui-select"
+                    value={user.membership_type}
+                    onChange={(event) =>
+                      handleMembershipChange(
+                        user.id,
+                        event.target.value as MembershipType,
+                      )
+                    }
+                  >
+                    <option value="free">무료</option>
+                    <option value="premium">프리미엄</option>
+                    <option value="admin">관리자</option>
+                  </select>
 
-                    <td>
-                      <button
-                        type="button"
-                        className={
-                          user.is_active ? 'button danger' : 'button secondary'
-                        }
-                        onClick={() => handleActiveToggle(user)}
-                      >
-                        {user.is_active ? '비활성화' : '활성화'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-
-                {filteredUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={8}>
-                      <div className="admin-empty-state">
-                        <strong>표시할 회원이 없습니다</strong>
-                        <p>검색어를 변경하거나 회원 목록을 새로고침해보세요.</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  <button
+                    type="button"
+                    className={`ui-button ${
+                      user.is_active ? 'ui-button-danger' : 'ui-button-secondary'
+                    }`}
+                    onClick={() => handleActiveToggle(user)}
+                  >
+                    {user.is_active ? '비활성화' : '활성화'}
+                  </button>
+                </div>
+              </article>
+            ))}
           </div>
         )}
-      </article>
-    </section>
+      </section>
+    </Page>
   )
 }
 

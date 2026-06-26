@@ -1,79 +1,76 @@
 type PaginationBarProps = {
   currentPage: number
   totalPages: number
-  onGoToPage: (page: number) => void
+  pageSize: number
+  totalCount: number
+  startIndex: number
+  endIndex: number
+  onPageChange: (page: number) => void
 }
 
 function PaginationBar({
   currentPage,
   totalPages,
-  onGoToPage,
+  pageSize,
+  totalCount,
+  startIndex,
+  endIndex,
+  onPageChange,
 }: PaginationBarProps) {
-  if (totalPages <= 1) return null
-
-  const visiblePages = Array.from({ length: totalPages }, (_, index) => index + 1)
-    .filter((page) => {
-      return (
-        page === 1 ||
-        page === totalPages ||
-        Math.abs(page - currentPage) <= 2
-      )
-    })
+  if (totalCount === 0) return null
 
   return (
     <div className="pagination-bar">
-      <button
-        type="button"
-        className="pagination-button"
-        disabled={currentPage <= 1}
-        onClick={() => onGoToPage(1)}
-      >
-        처음
-      </button>
-
-      <button
-        type="button"
-        className="pagination-button"
-        disabled={currentPage <= 1}
-        onClick={() => onGoToPage(currentPage - 1)}
-      >
-        이전
-      </button>
-
-      <div className="pagination-pages">
-        {visiblePages.map((page) => (
-          <button
-            key={page}
-            type="button"
-            className={
-              page === currentPage
-                ? 'pagination-page active'
-                : 'pagination-page'
-            }
-            onClick={() => onGoToPage(page)}
-          >
-            {page}
-          </button>
-        ))}
+      <div className="pagination-info">
+        <strong>
+          {startIndex + 1} - {endIndex}
+        </strong>
+        <span>
+          / 전체 {totalCount}개 · 페이지당 {pageSize}개
+        </span>
       </div>
 
-      <button
-        type="button"
-        className="pagination-button"
-        disabled={currentPage >= totalPages}
-        onClick={() => onGoToPage(currentPage + 1)}
-      >
-        다음
-      </button>
+      <div className="pagination-actions">
+        <button
+          type="button"
+          className="ui-button ui-button-secondary ui-button-sm"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage <= 1}
+        >
+          처음
+        </button>
 
-      <button
-        type="button"
-        className="pagination-button"
-        disabled={currentPage >= totalPages}
-        onClick={() => onGoToPage(totalPages)}
-      >
-        마지막
-      </button>
+        <button
+          type="button"
+          className="ui-button ui-button-secondary ui-button-sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          이전
+        </button>
+
+        <span className="pagination-current">
+          {currentPage} / {totalPages}
+        </span>
+
+        <button
+          type="button"
+          className="ui-button ui-button-secondary ui-button-sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          다음
+        </button>
+
+        <button
+          type="button"
+          className="ui-button ui-button-secondary ui-button-sm"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage >= totalPages}
+        >
+          마지막
+        </button>
+      </div>
     </div>
   )
 }

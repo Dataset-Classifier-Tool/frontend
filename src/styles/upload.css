@@ -1,0 +1,443 @@
+/*
+=========================================================
+Upload Page
+=========================================================
+*/
+
+.upload-page {
+    width: 100%;
+}
+
+.upload-success {
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(34, 197, 94, .28);
+    border-radius: var(--radius-md);
+    background: rgba(34, 197, 94, .10);
+    color: #86efac;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.upload-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    align-items: start;
+}
+
+.upload-main-panel {
+    padding: 28px;
+}
+
+.upload-side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    position: sticky;
+    top: calc(var(--header-height) + 24px);
+}
+
+.upload-section-head {
+    margin-bottom: 26px;
+}
+
+.upload-section-head h2 {
+    margin: 16px 0 8px;
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 900;
+}
+
+.upload-section-head p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+/* ==============================
+    Drop Zone
+================================ */
+
+.upload-dropzone {
+
+    min-height: 260px;
+
+    margin: 26px 0;
+
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-xl);
+
+    background: rgba(255,255,255,.03);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    gap: 14px;
+
+    cursor: pointer;
+
+    transition: var(--transition);
+}
+
+.upload-dropzone:hover {
+
+    border-color: var(--primary-color);
+
+    background: rgba(62,207,142,.05);
+
+}
+
+.upload-dropzone.is-dragging {
+
+    border-color: var(--primary-color);
+
+    background: rgba(62,207,142,.09);
+
+    transform: scale(1.01);
+
+}
+
+.upload-dropzone.is-selected {
+
+    border-color: var(--primary-color);
+
+}
+
+.upload-dropzone-icon {
+
+    font-size: 52px;
+
+}
+
+.upload-dropzone strong {
+
+    color: var(--text-primary);
+
+    font-size: 18px;
+
+}
+
+.upload-dropzone span {
+
+    color: var(--text-secondary);
+
+    font-size: 14px;
+
+}
+
+/* ==============================
+    Setting
+================================ */
+
+.upload-setting-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2,minmax(0,1fr));
+
+    gap: 18px;
+
+    margin-top: 28px;
+
+}
+
+.upload-setting-card {
+
+    padding: 20px;
+
+    border: 1px solid var(--border-color);
+
+    border-radius: var(--radius-lg);
+
+    background: rgba(255,255,255,.03);
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+}
+
+.upload-setting-card>span{
+
+    color: var(--text-secondary);
+
+    font-size:13px;
+
+    font-weight:700;
+
+}
+
+.upload-setting-card p{
+
+    margin:0;
+
+    color:var(--text-disabled);
+
+    font-size:12px;
+
+}
+
+.upload-interval-control{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.upload-interval-control button{
+
+    width:38px;
+
+    height:38px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.06);
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.upload-interval-control button:hover{
+
+    background:rgba(62,207,142,.15);
+
+}
+
+.upload-interval-control strong{
+
+    color:white;
+
+    font-size:22px;
+
+}
+
+/* ==============================
+    Auto Label
+================================ */
+
+.upload-auto-label{
+
+    display:flex;
+
+    gap:16px;
+
+    align-items:flex-start;
+
+    margin-top:28px;
+
+    padding:20px;
+
+    border:1px solid var(--border-color);
+
+    border-radius:var(--radius-lg);
+
+    background:rgba(62,207,142,.05);
+
+    cursor:pointer;
+
+}
+
+.upload-auto-label input{
+
+    margin-top:4px;
+
+    transform:scale(1.2);
+
+    accent-color:var(--primary-color);
+
+}
+
+.upload-auto-label strong{
+
+    display:block;
+
+    color:white;
+
+    margin-bottom:6px;
+
+}
+
+.upload-auto-label span{
+
+    color:var(--text-secondary);
+
+    font-size:13px;
+
+    line-height:1.6;
+
+}
+
+.upload-submit-button{
+
+    width:100%;
+
+    margin-top:26px;
+
+}
+
+/* ==============================
+    Summary
+================================ */
+
+.upload-summary-card{
+
+    padding:24px;
+
+}
+
+.upload-summary-card h2{
+
+    margin:18px 0 20px;
+
+    color:white;
+
+    font-size:22px;
+
+}
+
+.upload-summary-row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    gap:20px;
+
+    padding:12px 0;
+
+    border-bottom:1px solid var(--border-color);
+
+}
+
+.upload-summary-row:last-child{
+
+    border:none;
+
+}
+
+.upload-summary-row span{
+
+    color:var(--text-secondary);
+
+}
+
+.upload-summary-row strong{
+
+    color:white;
+
+    text-align:right;
+
+}
+
+.upload-flow-card{
+
+    padding:24px;
+
+}
+
+.upload-flow-card h3{
+
+    margin-top:0;
+
+    color:white;
+
+}
+
+.upload-flow-card ol{
+
+    margin:18px 0 0;
+
+    padding-left:18px;
+
+}
+
+.upload-flow-card li{
+
+    color:var(--text-secondary);
+
+    margin-bottom:12px;
+
+    line-height:1.7;
+
+}
+
+/* ==============================
+    Responsive
+================================ */
+
+@media (max-width:1100px){
+
+    .upload-layout{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .upload-side-panel{
+
+        position:static;
+
+    }
+
+}
+
+@media (max-width:768px){
+
+    .upload-setting-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+/*
+=========================================================
+Upload Settings
+=========================================================
+*/
+
+.upload-settings-card {
+    padding: 24px;
+}
+
+.upload-settings-card h2 {
+    margin: 18px 0 20px;
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+}
+
+.upload-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.upload-checkbox input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}

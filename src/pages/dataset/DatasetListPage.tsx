@@ -2,12 +2,25 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
+import {
+  EmptyState,
+  Page,
+  PageHeader,
+  StatCard,
+  StatsGrid,
+} from '../../common/components/ui'
 import { useDatasetStore } from '../../stores/datasetStore'
-
 import type { Dataset } from '../../types/dataset'
 
 type DatasetFormState = {
   name: string
+  description: string
+}
+
+type DatasetStatus = {
+  text: string
+  className: string
+  progress: number
   description: string
 }
 
@@ -21,9 +34,7 @@ function formatDate(dateText: string | null) {
 
   const date = new Date(dateText)
 
-  if (Number.isNaN(date.getTime())) {
-    return '날짜 없음'
-  }
+  if (Number.isNaN(date.getTime())) return '날짜 없음'
 
   return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -32,30 +43,33 @@ function formatDate(dateText: string | null) {
   })
 }
 
-function getDatasetStatus(dataset: Dataset) {
+function getDatasetStatus(dataset: Dataset): DatasetStatus {
   const frameCount = dataset.frame_count ?? 0
   const videoCount = dataset.video_count ?? 0
 
   if (frameCount > 0) {
     return {
-      text: '라벨링 가능',
-      className: 'ready',
-      description: '추출된 프레임이 있어 바로 작업할 수 있습니다.',
+      text: '작업 가능',
+      className: 'ui-badge-primary',
+      progress: 100,
+      description: '프레임 추출 완료',
     }
   }
 
   if (videoCount > 0) {
     return {
       text: '추출 대기',
-      className: 'pending',
-      description: '영상은 있으나 프레임 정보가 부족합니다.',
+      className: 'ui-badge-warning',
+      progress: 45,
+      description: '영상 업로드 완료',
     }
   }
 
   return {
     text: '업로드 필요',
-    className: 'empty',
-    description: '아직 업로드된 영상이 없습니다.',
+    className: 'ui-badge-danger',
+    progress: 12,
+    description: '원천 데이터 필요',
   }
 }
 
@@ -102,11 +116,14 @@ function DatasetListPage() {
     return datasets.filter((dataset) => (dataset.frame_count ?? 0) > 0).length
   }, [datasets])
 
-  const emptyDatasetCount = useMemo(() => {
-    return datasets.filter(
-      (dataset) =>
-        (dataset.video_count ?? 0) === 0 && (dataset.frame_count ?? 0) === 0,
-    ).length
+  const averageProgress = useMemo(() => {
+    if (datasets.length === 0) return 0
+
+    const score = datasets.reduce((sum, dataset) => {
+      return sum + getDatasetStatus(dataset).progress
+    }, 0)
+
+    return Math.round(score / datasets.length)
   }, [datasets])
 
   const handleChange = (
@@ -162,202 +179,181 @@ function DatasetListPage() {
   }
 
   return (
-    <section className="dataset-list-page">
-      <div className="page-header">
-        <div>
-          <span className="eyebrow">데이터셋 작업 공간</span>
-          <h1>데이터셋 관리</h1>
-          <p>
-            영상 업로드, 프레임 추출, 라벨링, 바운딩 박스 작업을 수행할
-            데이터셋 프로젝트를 생성하고 관리합니다.
-          </p>
-        </div>
+    <Page className="dataset-page">
+      <PageHeader
+        badge="Dataset Workspace"
+        title="데이터셋 관리"
+        description="영상 업로드, 프레임 추출, 라벨링, Export까지 이어지는 학습 데이터셋 제작 공간입니다."
+        actions={
+          <>
+            <Link to="/upload" className="ui-button ui-button-primary">
+              영상 업로드
+            </Link>
 
-        <Link to="/upload" className="button primary">
-          영상 업로드
-        </Link>
-      </div>
+            <Link to="/" className="ui-button ui-button-secondary">
+              대시보드
+            </Link>
+          </>
+        }
+      />
 
-      <div className="dataset-dashboard-grid">
-        <article className="dashboard-metric-card">
-          <span>전체 데이터셋</span>
-          <strong>{datasets.length}</strong>
-          <p>생성된 프로젝트 수</p>
-        </article>
+      <StatsGrid>
+        <StatCard label="전체 데이터셋" value={datasets.length} help="생성된 프로젝트" />
+        <StatCard label="원천 영상" value={totalVideoCount} help="업로드된 영상" />
+        <StatCard label="추출 프레임" value={totalFrameCount} help="학습 후보 이미지" />
+        <StatCard
+          label="평균 준비율"
+          value={`${averageProgress}%`}
+          help={`작업 가능 ${readyDatasetCount}개`}
+        />
+      </StatsGrid>
 
-        <article className="dashboard-metric-card">
-          <span>전체 영상</span>
-          <strong>{totalVideoCount}</strong>
-          <p>업로드된 원본 영상</p>
-        </article>
+      {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
 
-        <article className="dashboard-metric-card">
-          <span>전체 프레임</span>
-          <strong>{totalFrameCount}</strong>
-          <p>추출된 학습 후보 이미지</p>
-        </article>
+      <div className="dataset-workspace">
+        <aside className="dataset-create-panel ui-card">
+          <span className="ui-badge ui-badge-primary">New Project</span>
 
-        <article className="dashboard-metric-card">
-          <span>작업 가능</span>
-          <strong>{readyDatasetCount}</strong>
-          <p>프레임이 준비된 데이터셋</p>
-        </article>
-      </div>
-
-      {errorMessage && <div className="alert error">{errorMessage}</div>}
-
-      <div className="dataset-workspace-layout">
-        <article className="dataset-create-panel">
-          <div className="panel-header">
-            <div>
-              <span className="eyebrow">새 프로젝트</span>
-              <h2>데이터셋 생성</h2>
-              <p>
-                도로·터널 화재 감지 모델 학습에 사용할 데이터셋 단위를
-                생성합니다.
-              </p>
-            </div>
+          <div>
+            <h2 className="dataset-panel-title">데이터셋 생성</h2>
+            <p className="dataset-panel-description">
+              수집 목적, 촬영 환경, 라벨 기준을 정리한 데이터셋 프로젝트를
+              생성합니다.
+            </p>
           </div>
 
-          <form onSubmit={handleCreateDataset}>
-            <label>
-              데이터셋 이름
+          <form className="ui-form" onSubmit={handleCreateDataset}>
+            <div className="ui-form-group">
+              <label className="ui-label" htmlFor="dataset-name">
+                데이터셋 이름 <span className="ui-required">*</span>
+              </label>
               <input
+                id="dataset-name"
+                className="ui-input"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                placeholder="예: 터널 화재 주간 데이터셋"
+                placeholder="예: 야간 터널 화재 데이터셋"
               />
-            </label>
+            </div>
 
-            <label>
-              설명
+            <div className="ui-form-group">
+              <label className="ui-label" htmlFor="dataset-description">
+                설명
+              </label>
               <textarea
+                id="dataset-description"
+                className="ui-textarea"
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                placeholder="데이터셋 목적, 수집 조건, 주의사항 등을 적어주세요."
+                placeholder="수집 목적, 촬영 환경, 라벨 기준 등을 적어주세요."
               />
-            </label>
-
-            <div className="dataset-create-guide">
-              <strong>추천 작성 방식</strong>
-              <p>
-                수집 환경, 시간대, 라벨 기준을 함께 적어두면 나중에 학습
-                데이터셋을 정리할 때 훨씬 편합니다.
-              </p>
             </div>
 
             <button
               type="submit"
-              className="button primary"
+              className="ui-button ui-button-primary ui-button-lg dataset-create-button"
               disabled={isCreating}
             >
               {isCreating ? '생성 중...' : '데이터셋 생성'}
             </button>
           </form>
-        </article>
+        </aside>
 
-        <article className="dataset-list-panel">
-          <div className="panel-header dataset-list-toolbar">
+        <section className="dataset-list-panel ui-card">
+          <div className="dataset-list-header">
             <div>
-              <span className="eyebrow">프로젝트 목록</span>
-              <h2>내 데이터셋</h2>
-              <p>
-                총 {datasets.length}개 중 {filteredDatasets.length}개가
-                표시됩니다. 업로드가 필요한 데이터셋은 {emptyDatasetCount}개입니다.
+              <span className="ui-badge ui-badge-primary">Projects</span>
+              <h2 className="dataset-panel-title">내 데이터셋</h2>
+              <p className="dataset-panel-description">
+                총 {datasets.length}개 중 {filteredDatasets.length}개 표시 · 작업
+                가능 {readyDatasetCount}개
               </p>
             </div>
 
-            <input
-              className="dataset-search-input"
-              type="search"
-              value={searchKeyword}
-              onChange={(event) => setSearchKeyword(event.target.value)}
-              placeholder="데이터셋 이름 또는 설명 검색"
-            />
+            <div className="ui-search dataset-search">
+              <span className="ui-search-icon">⌕</span>
+              <input
+                className="ui-input"
+                type="search"
+                value={searchKeyword}
+                onChange={(event) => setSearchKeyword(event.target.value)}
+                placeholder="데이터셋 검색"
+              />
+            </div>
           </div>
 
           {isLoading ? (
-            <div className="dataset-empty-state">
-              <h3>데이터셋을 불러오는 중입니다</h3>
-              <p>잠시만 기다려주세요.</p>
-            </div>
+            <EmptyState
+              title="데이터셋을 불러오는 중입니다"
+              description="잠시만 기다려주세요."
+            />
           ) : filteredDatasets.length === 0 ? (
-            <div className="dataset-empty-state">
-              <h3>표시할 데이터셋이 없습니다</h3>
-              <p>새 데이터셋을 생성하거나 검색어를 변경해주세요.</p>
-            </div>
+            <EmptyState
+              title="표시할 데이터셋이 없습니다"
+              description="새 데이터셋을 만들거나 검색어를 변경해주세요."
+            />
           ) : (
-            <div className="dataset-list-grid">
+            <div className="dataset-card-grid">
               {filteredDatasets.map((dataset) => {
                 const status = getDatasetStatus(dataset)
 
                 return (
-                  <article className="dataset-card" key={dataset.id}>
-                    <div className="dataset-card-header">
-                      <div>
-                        <span className={`dataset-status ${status.className}`}>
-                          {status.text}
-                        </span>
-
-                        <h2>{dataset.name}</h2>
-                        <p>{dataset.description || '설명이 없습니다.'}</p>
-                      </div>
+                  <article className="dataset-card ui-card ui-card-hover" key={dataset.id}>
+                    <div className="dataset-card-top">
+                      <span className={`ui-badge ${status.className}`}>
+                        {status.text}
+                      </span>
+                      <span className="dataset-card-date">
+                        {formatDate(dataset.created_at)}
+                      </span>
                     </div>
 
-                    <div className="dataset-card-summary">
+                    <div className="dataset-card-body">
+                      <h3>{dataset.name}</h3>
+                      <p>{dataset.description || '설명이 없습니다.'}</p>
+                    </div>
+
+                    <div className="dataset-mini-stats">
                       <div>
                         <span>영상</span>
-                        <strong>{dataset.video_count ?? 0}개</strong>
+                        <strong>{dataset.video_count ?? 0}</strong>
                       </div>
 
                       <div>
                         <span>프레임</span>
-                        <strong>{dataset.frame_count ?? 0}장</strong>
+                        <strong>{dataset.frame_count ?? 0}</strong>
                       </div>
 
                       <div>
-                        <span>생성일</span>
-                        <strong>{formatDate(dataset.created_at)}</strong>
+                        <span>상태</span>
+                        <strong>{status.description}</strong>
                       </div>
                     </div>
 
-                    <div className="dataset-progress-box">
-                      <span>{status.description}</span>
+                    <div className="dataset-progress-area">
+                      <div className="dataset-progress-head">
+                        <span>준비율</span>
+                        <strong>{status.progress}%</strong>
+                      </div>
 
-                      <div className="dataset-progress-bar">
-                        <i
-                          style={{
-                            width:
-                              (dataset.frame_count ?? 0) > 0
-                                ? '100%'
-                                : (dataset.video_count ?? 0) > 0
-                                  ? '45%'
-                                  : '12%',
-                          }}
-                        />
+                      <div className="dataset-progress-line">
+                        <i style={{ width: `${status.progress}%` }} />
                       </div>
                     </div>
 
                     <div className="dataset-card-actions">
                       <Link
                         to={`/datasets/${dataset.id}`}
-                        className="button primary"
+                        className="ui-button ui-button-primary ui-button-sm"
                       >
                         작업 열기
                       </Link>
 
-                      <Link
-                        to={`/upload?datasetId=${dataset.id}`}
-                        className="button secondary"
-                      >
-                        영상 추가
-                      </Link>
-
                       <button
                         type="button"
-                        className="button danger"
+                        className="ui-button ui-button-danger ui-button-sm"
                         onClick={() => handleDeleteDataset(dataset.id)}
                       >
                         삭제
@@ -368,9 +364,9 @@ function DatasetListPage() {
               })}
             </div>
           )}
-        </article>
+        </section>
       </div>
-    </section>
+    </Page>
   )
 }
 

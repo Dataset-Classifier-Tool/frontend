@@ -1,457 +1,399 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
-import {
-  autoLabelDatasetApi,
-  type LabelCounts,
-} from '../../common/api/classifierApi'
 import { getDatasetDetailApi } from '../../common/api/datasetApi'
 import {
   downloadDatasetYoloApi,
   downloadDatasetZipApi,
-  getYoloExportMetaApi,
-  type YoloExportMeta,
 } from '../../common/api/exportApi'
-
+import { createLabelApi, deleteLabelApi } from '../../common/api/labelApi'
+import {
+  EmptyState,
+  Page,
+  PageHeader,
+  StatCard,
+  StatsGrid,
+} from '../../common/components/ui'
 import type { Dataset } from '../../types/dataset'
 import type { DatasetFrame } from '../../types/frame'
 import type { LabelName } from '../../types/label'
 
 import AutoLabelPanel from './components/AutoLabelPanel'
+import DatasetInfoPanel from './components/DatasetInfoPanel'
 import ExportPanel from './components/ExportPanel'
-import { FrameGrid } from './components/FrameGrid'
-import { FrameModal } from './components/FrameModal'
+import FrameGrid from './components/FrameGrid'
+import FrameModal from './components/FrameModal'
 import FrameToolbar from './components/FrameToolbar'
-import LabelFilterBar from './components/LabelFilterBar'
-import { LabelStatsPanel } from './components/LabelStatsPanel'
+import LabelStatsPanel from './components/LabelStatsPanel'
 import PaginationBar from './components/PaginationBar'
 
-import useDatasetFrames from '../../common/hooks/useDatasetFrames'
-import useFrameFilter from '../../common/hooks/useFrameFilter'
-import useFrameLabeling from '../../common/hooks/useFrameLabeling'
-import useFramePagination from '../../common/hooks/useFramePagination'
-import useLabelStats from '../../common/hooks/useLabelStats'
+type LabelFilter = LabelName | 'all' | 'unlabeled'
 
-const LABEL_OPTIONS: LabelName[] = [
-  'fire',
-  'smoke',
-  'carlight',
-  'negative',
-  'fire_smoke',
-  'fire_smoke_carlight',
+type LabelOption = {
+  value: LabelName
+  label: string
+  className: string
+  shortcut: string
+}
+
+type LabelStats = {
+  fire: number
+  smoke: number
+  carlight: number
+  negative: number
+  unlabeled: number
+}
+
+const PAGE_SIZE = 24
+
+const LABEL_OPTIONS: LabelOption[] = [
+  {
+    value: 'fire',
+    label: '화재',
+    className: 'dataset-label-fire',
+    shortcut: 'F',
+  },
+  {
+    value: 'smoke',
+    label: '연기',
+    className: 'dataset-label-smoke',
+    shortcut: 'S',
+  },
+  {
+    value: 'carlight',
+    label: '차량 등화류',
+    className: 'dataset-label-carlight',
+    shortcut: 'C',
+  },
+  {
+    value: 'negative',
+    label: '일반/오탐',
+    className: 'dataset-label-negative',
+    shortcut: 'N',
+  },
 ]
 
-const LABEL_TEXT: Record<LabelName, string> = {
-  fire: '화재',
-  smoke: '연기',
-  carlight: '차량 등화류',
-  negative: '정상 / 오탐 아님',
-  fire_smoke: '화재 + 연기',
-  fire_smoke_carlight: '화재 + 연기 + 차량 등화류',
-}
-
-const FRAMES_PER_PAGE = 20
-
-type EmptyStateProps = {
-  title: string
-  description: string
-  buttonText: string
-  onClick: () => void
-}
-
-function EmptyState({
-  title,
-  description,
-  buttonText,
-  onClick,
-}: EmptyStateProps) {
-  return (
-    <section>
-      <article className="dataset-card empty">
-        <h2>{title}</h2>
-        <p>{description}</p>
-
-        <button type="button" className="button primary" onClick={onClick}>
-          {buttonText}
-        </button>
-      </article>
-    </section>
-  )
+function getFrameLabel(frame: DatasetFrame): LabelName | null {
+  return frame.labels?.[0]?.label_name ?? null
 }
 
 function DatasetDetailPage() {
-  const navigate = useNavigate()
-  const { datasetId } = useParams()
-
-  const numericDatasetId = Number(datasetId)
-  const isValidDatasetId =
-    Number.isInteger(numericDatasetId) && numericDatasetId > 0
+  const params = useParams()
+  const datasetId = Number(params.id)
 
   const [dataset, setDataset] = useState<Dataset | null>(null)
-  const [selectedFrame, setSelectedFrame] = useState<DatasetFrame | null>(null)
-
-  const [isLoading, setIsLoading] = useState(false)
-  const [isAutoLabeling, setIsAutoLabeling] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
-  const [isYoloExporting, setIsYoloExporting] = useState(false)
-  const [isYoloMetaLoading, setIsYoloMetaLoading] = useState(false)
-
   const [errorMessage, setErrorMessage] = useState('')
-  const [autoLabelMessage, setAutoLabelMessage] = useState('')
-  const [autoLabelCounts, setAutoLabelCounts] = useState<LabelCounts | null>(
-    null,
-  )
-  const [yoloExportMeta, setYoloExportMeta] = useState<YoloExportMeta | null>(
-    null,
-  )
+  const [selectedLabel, setSelectedLabel] = useState<LabelFilter>('all')
+  const [selectedFrameIndex, setSelectedFrameIndex] = useState<number | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
-  const { allFrames } = useDatasetFrames(dataset)
-  const { filter, setFilter, filteredFrames } = useFrameFilter(allFrames)
-  const { labelStats, labeledFrameCount } = useLabelStats(allFrames)
-
-  const {
-    currentPage,
-    totalPages,
-    paginatedFrames,
-    visibleStart,
-    visibleEnd,
-    goToPage,
-  } = useFramePagination({
-    filteredFrames,
-    framesPerPage: FRAMES_PER_PAGE,
-    resetKey: filter,
-  })
-
-  const {
-    isLabelLoading,
-    labelErrorMessage,
-    setLabelErrorMessage,
-    handleCreateLabel,
-    handleDeleteLabel,
-  } = useFrameLabeling({
-    allFrames,
-    setDataset,
-    setSelectedFrame,
-  })
-
-  const selectedFrameIndex = useMemo(() => {
-    if (!selectedFrame) return -1
-
-    return filteredFrames.findIndex((frame) => frame.id === selectedFrame.id)
-  }, [filteredFrames, selectedFrame])
-
-  const reloadYoloExportMeta = async () => {
-    if (!isValidDatasetId) return
-
-    setIsYoloMetaLoading(true)
-
-    try {
-      const response = await getYoloExportMetaApi(numericDatasetId)
-      setYoloExportMeta(response.data)
-    } catch {
-      setYoloExportMeta(null)
-    } finally {
-      setIsYoloMetaLoading(false)
-    }
-  }
-
-  const reloadDatasetDetail = async () => {
-    if (!isValidDatasetId) {
+  const fetchDataset = async () => {
+    if (!datasetId || Number.isNaN(datasetId)) {
       setErrorMessage('잘못된 데이터셋 주소입니다.')
+      setIsLoading(false)
       return
     }
 
-    const response = await getDatasetDetailApi(numericDatasetId)
-    setDataset(response.data)
-
-    await reloadYoloExportMeta()
-  }
-
-  useEffect(() => {
-    const fetchDatasetDetail = async () => {
-      if (!isValidDatasetId) {
-        setIsLoading(false)
-        setErrorMessage('잘못된 데이터셋 주소입니다.')
-        return
-      }
-
+    try {
       setIsLoading(true)
       setErrorMessage('')
 
-      try {
-        await reloadDatasetDetail()
-      } catch {
-        setErrorMessage('데이터셋 상세 정보를 불러오지 못했습니다.')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchDatasetDetail()
-  }, [datasetId])
-
-  useEffect(() => {
-    if (!labelErrorMessage) return
-
-    setErrorMessage(labelErrorMessage)
-    setLabelErrorMessage('')
-  }, [labelErrorMessage, setLabelErrorMessage])
-
-  const handleAutoLabelDataset = async () => {
-    if (!isValidDatasetId) {
-      setErrorMessage('잘못된 데이터셋 주소입니다.')
-      return
-    }
-
-    const confirmed = window.confirm(
-      '현재 데이터셋의 모든 프레임에 AI 자동 라벨링을 실행할까요?',
-    )
-
-    if (!confirmed) return
-
-    setIsAutoLabeling(true)
-    setErrorMessage('')
-    setAutoLabelMessage('')
-    setAutoLabelCounts(null)
-
-    try {
-      const response = await autoLabelDatasetApi(numericDatasetId)
-
-      setAutoLabelCounts(response.data.label_counts)
-      setAutoLabelMessage(
-        `AI 자동 라벨링 완료: 전체 ${response.data.total_frames}개 중 ${response.data.labeled_frames}개 처리`,
-      )
-
-      await reloadDatasetDetail()
-    } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message ||
-          'AI 자동 라벨링 실행 중 오류가 발생했습니다.',
-      )
+      const response = await getDatasetDetailApi(datasetId)
+      setDataset(response.data)
+    } catch {
+      setErrorMessage('데이터셋 상세 정보를 불러오지 못했습니다.')
     } finally {
-      setIsAutoLabeling(false)
+      setIsLoading(false)
     }
   }
 
-  const handleDownloadDatasetZip = async () => {
-    if (!isValidDatasetId) {
-      setErrorMessage('잘못된 데이터셋 주소입니다.')
-      return
+  useEffect(() => {
+    fetchDataset()
+  }, [datasetId])
+
+  const frames = useMemo(() => {
+    if (!dataset?.videos) return []
+
+    return dataset.videos.flatMap((video) => video.frames ?? [])
+  }, [dataset])
+
+  const filteredFrames = useMemo(() => {
+    if (selectedLabel === 'all') return frames
+
+    if (selectedLabel === 'unlabeled') {
+      return frames.filter((frame) => !getFrameLabel(frame))
     }
 
-    if (labeledFrameCount === 0) {
-      setErrorMessage('다운로드할 라벨링된 프레임이 없습니다.')
-      return
+    return frames.filter((frame) => getFrameLabel(frame) === selectedLabel)
+  }, [frames, selectedLabel])
+
+  const totalPages = Math.max(1, Math.ceil(filteredFrames.length / PAGE_SIZE))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const startIndex = (safeCurrentPage - 1) * PAGE_SIZE
+  const endIndex = Math.min(startIndex + PAGE_SIZE, filteredFrames.length)
+
+  const pagedFrames = useMemo(() => {
+    return filteredFrames.slice(startIndex, endIndex)
+  }, [filteredFrames, startIndex, endIndex])
+
+  const selectedFrame =
+    selectedFrameIndex === null ? null : pagedFrames[selectedFrameIndex] ?? null
+
+  useEffect(() => {
+    setCurrentPage(1)
+    setSelectedFrameIndex(null)
+  }, [selectedLabel])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
+  const labelStats = useMemo<LabelStats>(() => {
+    const stats: LabelStats = {
+      fire: 0,
+      smoke: 0,
+      carlight: 0,
+      negative: 0,
+      unlabeled: 0,
     }
 
-    setIsExporting(true)
-    setErrorMessage('')
-    setAutoLabelMessage('')
+    frames.forEach((frame) => {
+      const label = getFrameLabel(frame)
+
+      if (!label) {
+        stats.unlabeled += 1
+        return
+      }
+
+      if (label === 'fire') stats.fire += 1
+      if (label === 'smoke') stats.smoke += 1
+      if (label === 'carlight') stats.carlight += 1
+      if (label === 'negative') stats.negative += 1
+    })
+
+    return stats
+  }, [frames])
+
+  const labeledCount = frames.length - labelStats.unlabeled
+  const progress =
+    frames.length === 0 ? 0 : Math.round((labeledCount / frames.length) * 100)
+
+  const handleOpenFrame = (frameIndex: number) => {
+    setSelectedFrameIndex(frameIndex)
+  }
+
+  const handleCloseFrame = () => {
+    setSelectedFrameIndex(null)
+  }
+
+  const handleMoveFrame = (direction: 'prev' | 'next') => {
+    setSelectedFrameIndex((prevIndex) => {
+      if (prevIndex === null) return prevIndex
+
+      if (direction === 'prev') {
+        return Math.max(0, prevIndex - 1)
+      }
+
+      return Math.min(pagedFrames.length - 1, prevIndex + 1)
+    })
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages))
+    setSelectedFrameIndex(null)
+  }
+
+  const handleLabel = async (frame: DatasetFrame, labelName: LabelName) => {
+    try {
+      setErrorMessage('')
+
+      const currentLabel = frame.labels?.[0]
+
+      if (currentLabel) {
+        await deleteLabelApi(currentLabel.id)
+      }
+
+      await createLabelApi(frame.id, {
+        label_name: labelName,
+        source: 'manual',
+        is_verified: true,
+        confidence: null,
+      })
+
+      await fetchDataset()
+    } catch {
+      setErrorMessage('라벨 저장에 실패했습니다.')
+    }
+  }
+
+  const handleDownloadZip = async () => {
+    if (!dataset) return
 
     try {
-      await downloadDatasetZipApi(numericDatasetId)
-    } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message ||
-          '데이터셋 다운로드 중 오류가 발생했습니다.',
-      )
+      setIsExporting(true)
+      setErrorMessage('')
+
+      await downloadDatasetZipApi(dataset.id)
+    } catch {
+      setErrorMessage('ZIP Export 다운로드에 실패했습니다.')
     } finally {
       setIsExporting(false)
     }
   }
 
-  const handleDownloadDatasetYolo = async () => {
-    if (!isValidDatasetId) {
-      setErrorMessage('잘못된 데이터셋 주소입니다.')
-      return
-    }
-
-    if (!yoloExportMeta?.available) {
-      setErrorMessage(
-        'YOLO Export 가능한 Bounding Box가 없습니다. 먼저 박스를 생성해주세요.',
-      )
-      return
-    }
-
-    setIsYoloExporting(true)
-    setErrorMessage('')
-    setAutoLabelMessage('')
+  const handleDownloadYolo = async () => {
+    if (!dataset) return
 
     try {
-      await downloadDatasetYoloApi(numericDatasetId)
-      await reloadYoloExportMeta()
-    } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message ||
-          'YOLO Export 다운로드 중 오류가 발생했습니다.',
-      )
+      setIsExporting(true)
+      setErrorMessage('')
+
+      await downloadDatasetYoloApi(dataset.id)
+    } catch {
+      setErrorMessage('YOLO Export 다운로드에 실패했습니다.')
     } finally {
-      setIsYoloExporting(false)
+      setIsExporting(false)
     }
-  }
-
-  const moveSelectedFrame = (direction: 'prev' | 'next') => {
-    if (!selectedFrame) return
-
-    const nextIndex =
-      direction === 'next' ? selectedFrameIndex + 1 : selectedFrameIndex - 1
-
-    if (nextIndex < 0 || nextIndex >= filteredFrames.length) return
-
-    const nextFrame = filteredFrames[nextIndex]
-    const nextPage = Math.floor(nextIndex / FRAMES_PER_PAGE) + 1
-
-    goToPage(nextPage)
-    setSelectedFrame(nextFrame)
   }
 
   if (isLoading) {
-    return <p>불러오는 중...</p>
-  }
-
-  if (!isValidDatasetId) {
     return (
-      <EmptyState
-        title="잘못된 데이터셋 주소입니다"
-        description="데이터셋 목록에서 다시 접근해주세요."
-        buttonText="데이터셋 목록으로"
-        onClick={() => navigate('/datasets')}
-      />
+      <Page className="dataset-page">
+        <EmptyState
+          title="데이터셋을 불러오는 중입니다"
+          description="프레임과 라벨 정보를 확인하고 있습니다."
+        />
+      </Page>
     )
   }
 
   if (!dataset) {
     return (
-      <EmptyState
-        title="데이터셋 정보가 없습니다"
-        description={errorMessage || '데이터셋 정보를 불러오지 못했습니다.'}
-        buttonText="데이터셋 목록으로"
-        onClick={() => navigate('/datasets')}
-      />
+      <Page className="dataset-page">
+        <EmptyState
+          title="데이터셋을 찾을 수 없습니다"
+          description={errorMessage || '요청한 데이터셋 정보를 확인할 수 없습니다.'}
+          action={
+            <Link to="/datasets" className="ui-button ui-button-secondary">
+              데이터셋 목록으로
+            </Link>
+          }
+        />
+      </Page>
     )
   }
 
   return (
-    <section>
-      <div className="page-header dataset-detail-header">
-        <div>
-          <span className="eyebrow">데이터셋 작업 공간</span>
-          <h1>{dataset.name}</h1>
-          <p>{dataset.description || '설명이 없습니다.'}</p>
-          <p>
-            영상 {dataset.video_count}개 · 프레임 {dataset.frame_count}장
-          </p>
-        </div>
+    <Page className="dataset-page">
+      <PageHeader
+        badge="Labeling Studio"
+        title={dataset.name}
+        description={dataset.description || '데이터셋 설명이 없습니다.'}
+        actions={
+          <>
+            <Link
+              to={`/upload?datasetId=${dataset.id}`}
+              className="ui-button ui-button-secondary"
+            >
+              영상 추가
+            </Link>
 
-        <div className="detail-actions">
-          <button
-            type="button"
-            className="button primary"
-            onClick={() => navigate('/upload')}
-          >
-            영상 업로드
-          </button>
+            <button
+              type="button"
+              className="ui-button ui-button-secondary"
+              onClick={handleDownloadZip}
+              disabled={isExporting}
+            >
+              ZIP Export
+            </button>
 
-          <button
-            type="button"
-            className="button secondary"
-            onClick={() => navigate('/datasets')}
-          >
-            목록으로
-          </button>
-        </div>
+            <button
+              type="button"
+              className="ui-button ui-button-primary"
+              onClick={handleDownloadYolo}
+              disabled={isExporting}
+            >
+              YOLO Export
+            </button>
+          </>
+        }
+      />
+
+      {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
+
+      <StatsGrid>
+        <StatCard label="전체 프레임" value={frames.length} help="학습 후보 이미지" />
+        <StatCard label="라벨 완료" value={labeledCount} help="수동 검수 완료" />
+        <StatCard label="미분류" value={labelStats.unlabeled} help="작업 필요 프레임" />
+        <StatCard label="진행률" value={`${progress}%`} help="라벨링 완성도" />
+      </StatsGrid>
+
+      <div className="dataset-detail-layout">
+        <main className="dataset-detail-main">
+          <FrameToolbar
+            totalCount={frames.length}
+            filteredCount={filteredFrames.length}
+            selectedLabel={selectedLabel}
+            labelOptions={LABEL_OPTIONS}
+            onChangeLabel={setSelectedLabel}
+          />
+
+          <FrameGrid
+            datasetId={dataset.id}
+            frames={pagedFrames}
+            labelOptions={LABEL_OPTIONS}
+            onOpenFrame={handleOpenFrame}
+            onLabelFrame={handleLabel}
+          />
+
+          <PaginationBar
+            currentPage={safeCurrentPage}
+            totalPages={totalPages}
+            pageSize={PAGE_SIZE}
+            totalCount={filteredFrames.length}
+            startIndex={startIndex}
+            endIndex={endIndex}
+            onPageChange={handlePageChange}
+          />
+        </main>
+
+        <aside className="dataset-detail-side">
+          <LabelStatsPanel
+            stats={labelStats}
+            totalCount={frames.length}
+            labeledCount={labeledCount}
+            progress={progress}
+          />
+
+          <DatasetInfoPanel dataset={dataset} frameCount={frames.length} />
+
+          <AutoLabelPanel disabled />
+
+          <ExportPanel
+            isExporting={isExporting}
+            onDownloadZip={handleDownloadZip}
+            onDownloadYolo={handleDownloadYolo}
+          />
+        </aside>
       </div>
-
-      {errorMessage && <div className="alert error">{errorMessage}</div>}
-
-      <div className="dataset-side-layout">
-        <AutoLabelPanel
-          isAutoLabeling={isAutoLabeling}
-          hasFrames={allFrames.length > 0}
-          autoLabelMessage={autoLabelMessage}
-          autoLabelCounts={autoLabelCounts}
-          onAutoLabelClick={handleAutoLabelDataset}
-        />
-
-        <ExportPanel
-          isExporting={isExporting}
-          isYoloExporting={isYoloExporting}
-          isYoloMetaLoading={isYoloMetaLoading}
-          labeledFrameCount={labeledFrameCount}
-          totalFrameCount={allFrames.length}
-          yoloExportFrameCount={yoloExportMeta?.export_frame_count ?? 0}
-          yoloExportBoxCount={yoloExportMeta?.export_box_count ?? 0}
-          yoloTrainFrameCount={yoloExportMeta?.train_frame_count ?? 0}
-          yoloValFrameCount={yoloExportMeta?.val_frame_count ?? 0}
-          yoloClassCounts={yoloExportMeta?.class_counts ?? {}}
-          onExportClick={handleDownloadDatasetZip}
-          onYoloExportClick={handleDownloadDatasetYolo}
-          onRefreshYoloMeta={reloadYoloExportMeta}
-        />
-      </div>
-
-      <LabelStatsPanel
-        labelOptions={LABEL_OPTIONS}
-        labelStats={labelStats}
-        autoLabelCounts={autoLabelCounts}
-        onRefresh={reloadDatasetDetail}
-      />
-
-      <FrameToolbar
-        filteredFrameCount={filteredFrames.length}
-        visibleStart={visibleStart}
-        visibleEnd={visibleEnd}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        framesPerPage={FRAMES_PER_PAGE}
-        onPrevPage={() => goToPage(currentPage - 1)}
-        onNextPage={() => goToPage(currentPage + 1)}
-      />
-
-      <LabelFilterBar
-        filter={filter}
-        allFrameCount={allFrames.length}
-        labelOptions={LABEL_OPTIONS}
-        labelText={LABEL_TEXT}
-        labelStats={labelStats}
-        onChangeFilter={setFilter}
-      />
-
-      <div className="shortcut-guide">
-        F 화재 · S 연기 · C 차량 등화류 · N 정상 · ← 이전 프레임 · → 다음
-        프레임 · ESC 닫기
-      </div>
-
-      <FrameGrid
-        frames={paginatedFrames}
-        labelOptions={LABEL_OPTIONS}
-        isLabelLoading={isLabelLoading}
-        onSelectFrame={setSelectedFrame}
-        onCreateLabel={handleCreateLabel}
-        onDeleteLabel={handleDeleteLabel}
-      />
-
-      <PaginationBar
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onGoToPage={goToPage}
-      />
 
       {selectedFrame && (
         <FrameModal
+          datasetId={dataset.id}
           frame={selectedFrame}
+          frameIndex={selectedFrameIndex ?? 0}
+          totalFrames={pagedFrames.length}
           labelOptions={LABEL_OPTIONS}
-          isLabelLoading={isLabelLoading}
-          selectedFrameIndex={selectedFrameIndex}
-          totalFrameCount={filteredFrames.length}
-          onClose={() => setSelectedFrame(null)}
-          onMove={moveSelectedFrame}
-          onCreateLabel={handleCreateLabel}
-          onDeleteLabel={handleDeleteLabel}
-          onError={setErrorMessage}
+          onClose={handleCloseFrame}
+          onMove={handleMoveFrame}
+          onLabel={handleLabel}
         />
       )}
-    </section>
+    </Page>
   )
 }
 

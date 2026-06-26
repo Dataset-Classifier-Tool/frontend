@@ -1,46 +1,57 @@
 import type { DatasetFrame } from '../../../types/frame'
 import type { LabelName } from '../../../types/label'
-import { FrameCard } from './FrameCard'
 
-interface Props {
-  frames: DatasetFrame[]
-  labelOptions: LabelName[]
-  isLabelLoading: boolean
-  onSelectFrame: (frame: DatasetFrame) => void
-  onCreateLabel: (frameId: number, labelName: LabelName) => void
-  onDeleteLabel: (frameId: number, labelId: number) => void
+import FrameCard from './FrameCard'
+
+type LabelOption = {
+  value: LabelName
+  label: string
+  className: string
+  shortcut: string
 }
 
-export function FrameGrid({
+type FrameGridProps = {
+  datasetId: number
+  frames: DatasetFrame[]
+  labelOptions: LabelOption[]
+  onOpenFrame: (frameIndex: number) => void
+  onLabelFrame: (frame: DatasetFrame, labelName: LabelName) => void
+}
+
+function FrameGrid({
+  datasetId,
   frames,
   labelOptions,
-  isLabelLoading,
-  onSelectFrame,
-  onCreateLabel,
-  onDeleteLabel,
-}: Props) {
+  onOpenFrame,
+  onLabelFrame,
+}: FrameGridProps) {
   if (frames.length === 0) {
     return (
-      <article className="dataset-card empty">
-        <h2>조건에 맞는 프레임이 없습니다</h2>
-        <p>필터를 변경하거나 영상을 추가로 업로드해보세요.</p>
-      </article>
+      <div className="ui-empty">
+        <div>
+          <h3 className="ui-empty-title">표시할 프레임이 없습니다</h3>
+          <p className="ui-empty-description">
+            필터를 변경하거나 영상을 추가로 업로드해주세요.
+          </p>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="frame-preview-grid professional-grid">
-      {frames.map((frame) => (
+    <div className="dataset-frame-grid">
+      {frames.map((frame, frameIndex) => (
         <FrameCard
           key={frame.id}
+          datasetId={datasetId}
           frame={frame}
           labelOptions={labelOptions}
-          isLabelLoading={isLabelLoading}
-          onSelectFrame={onSelectFrame}
-          onCreateLabel={onCreateLabel}
-          onDeleteLabel={onDeleteLabel}
+          onOpen={() => onOpenFrame(frameIndex)}
+          onLabel={onLabelFrame}
         />
       ))}
     </div>
   )
 }
+
+export default FrameGrid

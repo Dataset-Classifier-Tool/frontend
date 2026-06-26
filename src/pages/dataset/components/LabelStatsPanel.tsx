@@ -1,181 +1,72 @@
-import type { LabelCounts } from '../../../common/api/classifierApi'
-import type { LabelName } from '../../../types/label'
-
-type LabelStats = Record<LabelName | 'total' | 'unlabeled', number>
-
-interface Props {
-  labelOptions: LabelName[]
-  labelStats: LabelStats
-  autoLabelCounts: LabelCounts | null
-  onRefresh: () => void
+type LabelStats = {
+  fire: number
+  smoke: number
+  carlight: number
+  negative: number
+  unlabeled: number
 }
 
-const LABEL_STAT_META: Record<
-  LabelName | 'unlabeled',
-  {
-    title: string
-    icon: string
-    tone: string
-  }
-> = {
-  unlabeled: {
-    title: '미분류',
-    icon: '○',
-    tone: 'unlabeled',
-  },
-  fire: {
-    title: 'fire',
-    icon: '🔥',
-    tone: 'fire',
-  },
-  smoke: {
-    title: 'smoke',
-    icon: '☁',
-    tone: 'smoke',
-  },
-  carlight: {
-    title: 'carlight',
-    icon: '🚗',
-    tone: 'carlight',
-  },
-  negative: {
-    title: 'negative',
-    icon: '⊘',
-    tone: 'negative',
-  },
-  fire_smoke: {
-    title: 'fire_smoke',
-    icon: '🔥☁',
-    tone: 'fire-smoke',
-  },
-  fire_smoke_carlight: {
-    title: 'fire_smoke_carlight',
-    icon: '🔥🚗',
-    tone: 'mixed',
-  },
+type LabelStatsPanelProps = {
+  stats: LabelStats
+  totalCount: number
+  labeledCount: number
+  progress: number
 }
 
-export function LabelStatsPanel({
-  labelOptions,
-  labelStats,
-  autoLabelCounts,
-  onRefresh,
-}: Props) {
-  const statKeys: Array<LabelName | 'unlabeled'> = [
-    'unlabeled',
-    ...labelOptions,
-  ]
-
-  const statItems = statKeys.map((key) => {
-    const count = labelStats[key]
-    const percentage =
-      labelStats.total > 0
-        ? Math.round((count / labelStats.total) * 1000) / 10
-        : 0
-
-    return {
-      key,
-      count,
-      percentage,
-      ...LABEL_STAT_META[key],
-    }
-  })
-
+function LabelStatsPanel({
+  stats,
+  totalCount,
+  labeledCount,
+  progress,
+}: LabelStatsPanelProps) {
   return (
     <>
-      <div className="dataset-stats-card premium-stats-card">
-        <div className="premium-stats-header">
-          <div className="premium-stats-title-group">
-            <div className="premium-stats-icon">▣</div>
+      <article className="ui-card dataset-side-card">
+        <span className="ui-badge ui-badge-primary">Progress</span>
 
-            <div>
-              <h3>데이터셋 라벨 현황</h3>
-              <p>전체 프레임 기준 라벨 분포를 확인합니다.</p>
-            </div>
-          </div>
+        <h2>{progress}%</h2>
 
-          <button
-            type="button"
-            className="stats-refresh-button"
-            onClick={onRefresh}
-          >
-            ⟳ 통계 새로고침
-          </button>
+        <div className="dataset-progress-line">
+          <i style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="premium-stats-divider" />
+        <p>
+          전체 {totalCount}개 중 {labeledCount}개 프레임이 라벨링되었습니다.
+        </p>
+      </article>
 
-        <div className="premium-stats-grid">
-          <article className="premium-stat-card total-card">
-            <div className="stat-icon-box total">▣</div>
-            <span>전체 프레임</span>
-            <div className="stat-count-row">
-              <strong>{labelStats.total}</strong>
-              <small>장</small>
-            </div>
-          </article>
+      <article className="ui-card dataset-side-card">
+        <span className="ui-badge ui-badge-primary">Label Stats</span>
 
-          {statItems.map((item) => (
-            <article className="premium-stat-card" key={item.key}>
-              <div className={`stat-icon-box ${item.tone}`}>{item.icon}</div>
-
-              <span>{item.title}</span>
-
-              <div className="stat-count-row">
-                <strong>{item.count}</strong>
-                <small>장</small>
-              </div>
-
-              <em>{item.percentage}%</em>
-            </article>
-          ))}
-        </div>
-
-        <div className="label-ratio-panel">
-          <div className="label-ratio-title">
-            <strong>라벨 분포 비율</strong>
-            <span>총 {labelStats.total}장 기준</span>
+        <div className="dataset-label-stats">
+          <div>
+            <span>화재</span>
+            <strong>{stats.fire}</strong>
           </div>
 
-          <div className="label-ratio-bar">
-            {statItems.map((item) => (
-              <div
-                key={item.key}
-                className={`label-ratio-segment ${item.tone}`}
-                style={{
-                  width: `${Math.max(item.percentage, item.count > 0 ? 2 : 0)}%`,
-                }}
-                title={`${item.title}: ${item.percentage}%`}
-              />
-            ))}
+          <div>
+            <span>연기</span>
+            <strong>{stats.smoke}</strong>
           </div>
 
-          <div className="label-ratio-legend">
-            {statItems.map((item) => (
-              <div className="label-ratio-legend-item" key={item.key}>
-                <span className={`legend-dot ${item.tone}`} />
-                <strong>{item.percentage}%</strong>
-                <em>{item.title}</em>
-              </div>
-            ))}
+          <div>
+            <span>차량 등화류</span>
+            <strong>{stats.carlight}</strong>
+          </div>
+
+          <div>
+            <span>일반/오탐</span>
+            <strong>{stats.negative}</strong>
+          </div>
+
+          <div>
+            <span>미분류</span>
+            <strong>{stats.unlabeled}</strong>
           </div>
         </div>
-      </div>
-
-      {autoLabelCounts && (
-        <div className="auto-label-summary">
-          <h3>방금 실행한 AI 자동 라벨링 결과</h3>
-
-          <div className="auto-label-count-grid">
-            {labelOptions.map((labelName) => (
-              <div className="auto-label-count-item" key={labelName}>
-                {labelName}
-                <strong>{autoLabelCounts[labelName] ?? 0}장</strong>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      </article>
     </>
   )
 }
+
+export default LabelStatsPanel

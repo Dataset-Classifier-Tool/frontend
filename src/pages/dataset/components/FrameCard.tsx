@@ -1,89 +1,93 @@
-import { getFrameImageUrl } from '../../../common/api/uploadApi'
-
 import type { DatasetFrame } from '../../../types/frame'
 import type { LabelName } from '../../../types/label'
 
-interface Props {
+type LabelOption = {
+  value: LabelName
+  label: string
+  className: string
+  shortcut: string
+}
+
+type FrameCardProps = {
+  datasetId: number
   frame: DatasetFrame
-  labelOptions: LabelName[]
-  isLabelLoading: boolean
-  onSelectFrame: (frame: DatasetFrame) => void
-  onCreateLabel: (frameId: number, labelName: LabelName) => void
-  onDeleteLabel: (frameId: number, labelId: number) => void
+  labelOptions: LabelOption[]
+  onOpen: () => void
+  onLabel: (frame: DatasetFrame, labelName: LabelName) => void
 }
 
-const LABEL_TEXT: Record<LabelName, string> = {
-  fire: '화재',
-  smoke: '연기',
-  carlight: '차량 등화류',
-  negative: '정상',
-  fire_smoke: '화재 + 연기',
-  fire_smoke_carlight: '화재 + 연기 + 등화류',
+function getFrameLabel(frame: DatasetFrame): LabelName | null {
+  return frame.labels?.[0]?.label_name ?? null
 }
 
-export function FrameCard({
+function getLabelOption(labelOptions: LabelOption[], labelName: LabelName | null) {
+  if (!labelName) return null
+
+  return labelOptions.find((option) => option.value === labelName) ?? null
+}
+
+function formatTimestamp(timestamp: number | null) {
+  if (timestamp === null || Number.isNaN(timestamp)) {
+    return '0.0초'
+  }
+
+  return `${timestamp.toFixed(1)}초`
+}
+
+function FrameCard({
+  datasetId,
   frame,
   labelOptions,
-  isLabelLoading,
-  onSelectFrame,
-  onCreateLabel,
-  onDeleteLabel,
-}: Props) {
+  onOpen,
+  onLabel,
+}: FrameCardProps) {
+  const currentLabel = getFrameLabel(frame)
+  const labelOption = getLabelOption(labelOptions, currentLabel)
+  const labelText = labelOption?.label ?? '미분류'
+  const labelClassName = labelOption?.className ?? ''
+
   return (
-    <article className="frame-preview-card professional-frame-card">
-      <button
-        type="button"
-        className="frame-image-button"
-        onClick={() => onSelectFrame(frame)}
-      >
+    <article className="dataset-frame-card ui-card ui-card-hover" onClick={onOpen}>
+      <div className="dataset-frame-image">
         <img
-          className="frame-image"
-          src={getFrameImageUrl(frame.id)}
-          alt={`프레임 ${frame.frame_number}`}
+          src={`/api/datasets/${datasetId}/frames/${frame.id}/image`}
+          alt={`frame-${frame.id}`}
         />
-      </button>
-
-      <div className="frame-card-meta">
-        <strong>프레임 {frame.frame_number}</strong>
-        <small>
-          {frame.timestamp !== null
-            ? `${frame.timestamp.toFixed(1)}초`
-            : '시간 정보 없음'}
-        </small>
       </div>
 
-      <div className="frame-label-row">
-        {frame.labels.length === 0 ? (
-          <span className="label-chip empty">미분류</span>
-        ) : (
-          frame.labels.map((label) => (
-            <span className="label-chip removable" key={label.id}>
-              {LABEL_TEXT[label.label_name]}
-              <button
-                type="button"
-                className="label-remove-button"
-                onClick={() => onDeleteLabel(frame.id, label.id)}
-              >
-                ×
-              </button>
-            </span>
-          ))
-        )}
-      </div>
+      <div className="dataset-frame-body">
+        <div className="dataset-frame-head">
+          <div>
+            <h3 className="dataset-frame-title">Frame #{frame.frame_number}</h3>
+            <p className="dataset-frame-time">{formatTimestamp(frame.timestamp)}</p>
+          </div>
 
-      <div className="label-button-grid">
-        {labelOptions.map((labelName) => (
-          <button
-            key={labelName}
-            type="button"
-            className="label-button"
-            disabled={isLabelLoading}
-            onClick={() => onCreateLabel(frame.id, labelName)}
-          >
-            {LABEL_TEXT[labelName]}
-          </button>
-        ))}
+          <span className={`ui-badge ${currentLabel ? labelClassName : ''}`}>
+            {labelText}
+          </span>
+        </div>
+
+        <div className="dataset-frame-meta">
+          {labelOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={`dataset-label-button ${
+                currentLabel === option.value ? 'active' : ''
+              } ${option.className}`}
+              onClick={(event) => {
+                event.stopPropagation()
+                onLabel(frame, option.value)
+              }}
+            >
+              <span>{option.shortcut}</span>
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
     </article>
   )
 }
+
+export default FrameCard

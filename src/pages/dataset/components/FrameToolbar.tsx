@@ -1,56 +1,75 @@
+import type { LabelName } from '../../../types/label'
+
+type LabelFilter = LabelName | 'all' | 'unlabeled'
+
+type LabelOption = {
+  value: LabelName
+  label: string
+  className: string
+  shortcut: string
+}
+
 type FrameToolbarProps = {
-  filteredFrameCount: number
-  visibleStart: number
-  visibleEnd: number
-  currentPage: number
-  totalPages: number
-  framesPerPage: number
-  onPrevPage: () => void
-  onNextPage: () => void
+  totalCount: number
+  filteredCount: number
+  selectedLabel: LabelFilter
+  labelOptions: LabelOption[]
+  onChangeLabel: (label: LabelFilter) => void
 }
 
 function FrameToolbar({
-  filteredFrameCount,
-  visibleStart,
-  visibleEnd,
-  currentPage,
-  totalPages,
-  framesPerPage,
-  onPrevPage,
-  onNextPage,
+  totalCount,
+  filteredCount,
+  selectedLabel,
+  labelOptions,
+  onChangeLabel,
 }: FrameToolbarProps) {
   return (
-    <div className="frame-toolbar">
-      <div>
-        <h3>프레임 목록</h3>
-        <p>
-          총 {filteredFrameCount}장 중 {visibleStart}~{visibleEnd}장 표시 ·
-          페이지당 {framesPerPage}장
-        </p>
+    <div className="dataset-toolbar">
+      <div className="dataset-toolbar-left">
+        <span className="ui-badge ui-badge-primary">Frame Gallery</span>
+        <span className="ui-badge">
+          {filteredCount} / {totalCount} 표시
+        </span>
       </div>
 
-      <div className="pagination-compact">
+      <div className="dataset-toolbar-right">
         <button
           type="button"
-          className="pagination-button"
-          disabled={currentPage <= 1}
-          onClick={onPrevPage}
+          className={`ui-button ui-button-sm ${
+            selectedLabel === 'all' ? 'ui-button-primary' : 'ui-button-secondary'
+          }`}
+          onClick={() => onChangeLabel('all')}
         >
-          이전
+          전체
         </button>
-
-        <strong>
-          {currentPage} / {totalPages}
-        </strong>
 
         <button
           type="button"
-          className="pagination-button"
-          disabled={currentPage >= totalPages}
-          onClick={onNextPage}
+          className={`ui-button ui-button-sm ${
+            selectedLabel === 'unlabeled'
+              ? 'ui-button-primary'
+              : 'ui-button-secondary'
+          }`}
+          onClick={() => onChangeLabel('unlabeled')}
         >
-          다음
+          미분류
         </button>
+
+        {labelOptions.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={`ui-button ui-button-sm ${
+              selectedLabel === option.value
+                ? 'ui-button-primary'
+                : 'ui-button-secondary'
+            }`}
+            onClick={() => onChangeLabel(option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+
 import { useAuthStore } from '../../stores/authStore'
 
 function RegisterPage() {
@@ -39,74 +40,151 @@ function RegisterPage() {
   }
 
   return (
-    <section className="page-card">
-      <h1>회원가입</h1>
-      <p>이름, 생년월일, 이메일을 입력해 계정을 생성합니다.</p>
+    <section className="auth-page">
+      <div className="auth-card ui-card">
+        <div className="auth-card-header">
+          <span className="ui-badge ui-badge-primary">Create account</span>
 
-      {errorMessage && <div className="alert error">{errorMessage}</div>}
+          <h1>회원가입</h1>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <label>
-          이름
-          <input
-            type="text"
-            placeholder="김도균"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            required
-          />
-        </label>
+          <p>
+            계정을 생성하고 영상 기반 AI 학습 데이터셋 제작을 시작합니다.
+          </p>
+        </div>
 
-        <label>
-          생년월일
-          <input
-            type="date"
-            value={birthDate}
-            onChange={(event) => setBirthDate(event.target.value)}
-            required
-          />
-        </label>
+        {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
 
-        <label>
-          닉네임
-          <input
-            type="text"
-            placeholder="도균"
-            value={nickname}
-            onChange={(event) => setNickname(event.target.value)}
-            required
-          />
-        </label>
+        <form className="ui-form" onSubmit={handleSubmit}>
+          <div className="ui-form-row">
+            <div className="ui-form-group">
+              <label className="ui-label" htmlFor="register-name">
+                이름 <span className="ui-required">*</span>
+              </label>
 
-        <label>
-          이메일
-          <input
-            type="email"
-            placeholder="test@test.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-            autoComplete="email"
-          />
-        </label>
+              <input
+                id="register-name"
+                className="ui-input"
+                type="text"
+                placeholder="김도균"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+            </div>
 
-        <label>
-          비밀번호
-          <input
-            type="password"
-            placeholder="8자 이상"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-            minLength={8}
-            autoComplete="new-password"
-          />
-        </label>
+            <div className="ui-form-group">
+              <label className="ui-label" htmlFor="register-nickname">
+                닉네임 <span className="ui-required">*</span>
+              </label>
 
-        <button type="submit" className="button primary full" disabled={isLoading}>
-          {isLoading ? '가입 중...' : '회원가입'}
-        </button>
-      </form>
+              <input
+                id="register-nickname"
+                className="ui-input"
+                type="text"
+                placeholder="도균"
+                value={nickname}
+                onChange={(event) => setNickname(event.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="ui-form-group">
+            <label className="ui-label" htmlFor="register-birth-date">
+              생년월일 <span className="ui-required">*</span>
+            </label>
+
+            <input
+              id="register-birth-date"
+              className="ui-input"
+              type="date"
+              value={birthDate}
+              onChange={(event) => setBirthDate(event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="ui-form-group">
+            <label className="ui-label" htmlFor="register-email">
+              이메일 <span className="ui-required">*</span>
+            </label>
+
+            <input
+              id="register-email"
+              className="ui-input"
+              type="email"
+              placeholder="test@test.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="ui-form-group">
+            <label className="ui-label" htmlFor="register-password">
+              비밀번호 <span className="ui-required">*</span>
+            </label>
+
+            <input
+              id="register-password"
+              className="ui-input"
+              type="password"
+              placeholder="8자 이상"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="ui-button ui-button-primary ui-button-lg auth-submit-button"
+            disabled={isLoading}
+          >
+            {isLoading ? '가입 중...' : '회원가입'}
+          </button>
+        </form>
+
+        <p className="auth-footer-text">
+          이미 계정이 있나요? <Link to="/login">로그인</Link>
+        </p>
+      </div>
+
+      <aside className="auth-side-panel ui-card">
+        <span className="ui-badge ui-badge-primary">Start building</span>
+
+        <h2>내 데이터셋을 직접 만들고 성장시키는 작업 공간</h2>
+
+        <p>
+          처음에는 수동 라벨링으로 시작하고, 이후 Bounding Box와 자동 라벨링을
+          연결해 더 강력한 데이터셋 제작 흐름으로 확장할 수 있습니다.
+        </p>
+
+        <div className="auth-flow-list">
+          <div>
+            <strong>Fire</strong>
+            <span>화재 데이터</span>
+          </div>
+
+          <div>
+            <strong>Smoke</strong>
+            <span>연기 데이터</span>
+          </div>
+
+          <div>
+            <strong>Light</strong>
+            <span>차량 등화류</span>
+          </div>
+
+          <div>
+            <strong>Negative</strong>
+            <span>오탐 억제 데이터</span>
+          </div>
+        </div>
+      </aside>
     </section>
   )
 }
