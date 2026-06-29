@@ -1,9 +1,9 @@
 import apiClient from '../../../common/api/axios'
 
-import type { ApiResponse } from '../../../types/api.ts'
-import type { DatasetFrame } from '../../../types/frame.ts'
-import type { DatasetVideo } from '../../../types/video.ts'
-import type { AutoLabelDatasetResponse } from '../../dataset/api/classifierApi.ts'
+import type { ApiResponse } from '../../../types/api'
+import type { DatasetFrame } from '../../../types/frame'
+import type { DatasetVideo } from '../../../types/video'
+import type { AutoLabelDatasetResponse } from '../../dataset/api/classifierApi'
 
 export interface UploadVideoResponse {
   video: DatasetVideo

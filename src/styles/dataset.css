@@ -8,12 +8,6 @@ Dataset Pages
     width: 100%;
 }
 
-/*
-=========================================================
-Dataset List
-=========================================================
-*/
-
 .dataset-alert {
     padding: 14px 16px;
     border: 1px solid rgba(239, 68, 68, 0.28);
@@ -24,16 +18,27 @@ Dataset List
     font-weight: 700;
 }
 
+/*
+=========================================================
+Dataset List
+=========================================================
+*/
+
 .dataset-workspace {
     display: grid;
     grid-template-columns: 360px minmax(0, 1fr);
-    gap: 18px;
+    gap: 20px;
     align-items: flex-start;
 }
 
 .dataset-create-panel,
 .dataset-list-panel {
-    padding: 22px;
+    border-radius: 28px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background:
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(8, 12, 20, 0.95));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
 }
 
 .dataset-create-panel {
@@ -42,29 +47,31 @@ Dataset List
     display: flex;
     flex-direction: column;
     gap: 22px;
+    padding: 30px;
+}
+
+.dataset-list-panel {
+    min-width: 0;
+    padding: 30px;
 }
 
 .dataset-panel-title {
     margin: 14px 0 8px;
     color: var(--text-primary);
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
+    font-size: 24px;
+    font-weight: 950;
+    letter-spacing: -0.05em;
 }
 
 .dataset-panel-description {
     margin: 0;
     color: var(--text-secondary);
     font-size: 13px;
-    line-height: 1.7;
+    line-height: 1.75;
 }
 
 .dataset-create-button {
     width: 100%;
-}
-
-.dataset-list-panel {
-    min-width: 0;
 }
 
 .dataset-list-header {
@@ -72,22 +79,66 @@ Dataset List
     align-items: flex-start;
     justify-content: space-between;
     gap: 18px;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .dataset-search {
+    position: relative;
     width: min(320px, 100%);
+}
+
+.dataset-search .ui-input {
+    width: 100%;
+    padding-left: 42px;
+    border-radius: 16px;
+}
+
+.ui-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: var(--text-disabled);
+    font-size: 16px;
+    z-index: 2;
 }
 
 .dataset-card-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 18px;
 }
 
 .dataset-card {
+    position: relative;
     min-width: 0;
-    padding: 18px;
+    padding: 22px;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(8, 12, 20, 0.96));
+    transition: var(--transition);
+}
+
+.dataset-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.dataset-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(62, 207, 142, 0.32);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+}
+
+.dataset-card:hover::before {
+    opacity: 1;
 }
 
 .dataset-card-top {
@@ -101,16 +152,16 @@ Dataset List
 .dataset-card-date {
     color: var(--text-disabled);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
     white-space: nowrap;
 }
 
 .dataset-card-body h3 {
     margin: 0 0 8px;
     color: var(--text-primary);
-    font-size: 18px;
-    font-weight: 900;
-    letter-spacing: -0.03em;
+    font-size: 20px;
+    font-weight: 950;
+    letter-spacing: -0.04em;
 }
 
 .dataset-card-body p {
@@ -118,7 +169,7 @@ Dataset List
     margin: 0;
     color: var(--text-secondary);
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.65;
 }
 
 .dataset-mini-stats {
@@ -131,9 +182,9 @@ Dataset List
 .dataset-mini-stats div {
     min-width: 0;
     padding: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(148, 163, 184, 0.12);
     border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.035);
 }
 
 .dataset-mini-stats span {
@@ -141,7 +192,7 @@ Dataset List
     margin-bottom: 6px;
     color: var(--text-disabled);
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 900;
 }
 
 .dataset-mini-stats strong {
@@ -149,7 +200,7 @@ Dataset List
     overflow: hidden;
     color: var(--text-primary);
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 950;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -165,30 +216,33 @@ Dataset List
     margin-bottom: 8px;
     color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 900;
 }
 
 .dataset-progress-line {
     height: 8px;
     overflow: hidden;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.055);
 }
 
 .dataset-progress-line i {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--primary-color), #22c55e);
-    box-shadow: 0 0 20px rgba(62, 207, 142, 0.32);
+    background: linear-gradient(90deg, var(--primary-color), #34d399);
+    box-shadow: 0 0 20px rgba(62, 207, 142, 0.3);
 }
 
 .dataset-card-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 18px;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.dataset-card-actions .ui-button {
+    flex: 1;
 }
 
 /*
@@ -276,6 +330,27 @@ Dataset Detail Shared
     gap: 6px;
 }
 
+.dataset-frame-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.dataset-frame-time {
+    margin: 0;
+    color: var(--text-disabled);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/*
+=========================================================
+Labels
+=========================================================
+*/
+
 .dataset-label-fire {
     background: rgba(239, 68, 68, 0.12);
     border-color: rgba(239, 68, 68, 0.3);
@@ -298,75 +373,6 @@ Dataset Detail Shared
     background: rgba(100, 116, 139, 0.14);
     border-color: rgba(148, 163, 184, 0.28);
     color: #cbd5e1;
-}
-
-@media (max-width: 1280px) {
-    .dataset-card-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .dataset-frame-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 1100px) {
-    .dataset-workspace,
-    .dataset-detail-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .dataset-create-panel,
-    .dataset-detail-side {
-        position: static;
-    }
-}
-
-@media (max-width: 760px) {
-    .dataset-list-header,
-    .dataset-toolbar {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .dataset-card-actions,
-    .dataset-toolbar-left,
-    .dataset-toolbar-right {
-        width: 100%;
-    }
-
-    .dataset-card-actions .ui-button {
-        flex: 1;
-    }
-
-    .dataset-frame-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .dataset-mini-stats {
-        grid-template-columns: 1fr;
-    }
-}
-
-/*
-=========================================================
-Dataset Detail Additions
-=========================================================
-*/
-
-.dataset-frame-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.dataset-frame-time {
-    margin: 0;
-    color: var(--text-disabled);
-    font-size: 12px;
-    font-weight: 700;
 }
 
 .dataset-label-button {
@@ -408,6 +414,12 @@ Dataset Detail Additions
     background: rgba(62, 207, 142, 0.12);
     color: var(--primary-color);
 }
+
+/*
+=========================================================
+Side Panels
+=========================================================
+*/
 
 .dataset-side-card {
     padding: 22px;
@@ -474,39 +486,7 @@ Dataset Detail Additions
     width: 100%;
 }
 
-@media (max-width: 760px) {
-    .dataset-frame-head {
-        flex-direction: column;
-    }
-
-    .dataset-label-button {
-        flex: 1;
-        justify-content: center;
-    }
-}
-
-.dataset-export-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    margin-top: 18px;
-}
-
-.dataset-export-panel h3 {
-    margin: 0 0 8px;
-    color: var(--text-primary);
-    font-size: 17px;
-    font-weight: 900;
-    letter-spacing: -0.03em;
-}
-
-.dataset-export-panel p {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: 13px;
-    line-height: 1.7;
-}
-
+.dataset-export-panel,
 .dataset-auto-label-panel {
     display: flex;
     flex-direction: column;
@@ -514,6 +494,7 @@ Dataset Detail Additions
     margin-top: 18px;
 }
 
+.dataset-export-panel h3,
 .dataset-auto-label-panel h3 {
     margin: 0 0 8px;
     color: var(--text-primary);
@@ -522,6 +503,7 @@ Dataset Detail Additions
     letter-spacing: -0.03em;
 }
 
+.dataset-export-panel p,
 .dataset-auto-label-panel p {
     margin: 0;
     color: var(--text-secondary);
@@ -597,18 +579,66 @@ Pagination
     font-weight: 900;
 }
 
+/*
+=========================================================
+Responsive
+=========================================================
+*/
+
+@media (max-width: 1280px) {
+    .dataset-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dataset-frame-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1100px) {
+    .dataset-workspace,
+    .dataset-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .dataset-create-panel,
+    .dataset-detail-side {
+        position: static;
+    }
+}
+
 @media (max-width: 760px) {
+    .dataset-list-header,
+    .dataset-toolbar,
     .pagination-bar {
         align-items: flex-start;
         flex-direction: column;
     }
 
+    .dataset-search,
+    .dataset-card-actions,
+    .dataset-toolbar-left,
+    .dataset-toolbar-right,
     .pagination-actions {
         width: 100%;
-        flex-wrap: wrap;
     }
 
+    .dataset-card-actions .ui-button,
     .pagination-actions .ui-button {
         flex: 1;
+    }
+
+    .dataset-frame-grid,
+    .dataset-mini-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .dataset-frame-head {
+        flex-direction: column;
+    }
+
+    .dataset-label-button {
+        flex: 1;
+        justify-content: center;
     }
 }

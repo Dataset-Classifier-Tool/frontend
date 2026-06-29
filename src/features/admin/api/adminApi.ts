@@ -1,13 +1,14 @@
 import apiClient from '../../../common/api/axios'
-import type { ApiResponse } from '../../../types/api.ts'
+import type { ApiResponse } from '../../../types/api'
 import type {
   AdminUser,
   UpdateActiveRequest,
   UpdateMembershipRequest,
-} from '../../../types/user.ts'
+} from '../../../types/user'
 
 export async function getAdminUsersApi() {
   const response = await apiClient.get<ApiResponse<AdminUser[]>>('/api/admin/users')
+
   return response.data
 }
 

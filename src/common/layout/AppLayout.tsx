@@ -1,8 +1,8 @@
 import { Outlet } from 'react-router-dom'
 
-import Header from './Header.tsx'
-import PageContainer from './PageContainer.tsx'
-import Sidebar from './Sidebar.tsx'
+import Header from './Header'
+import PageContainer from './PageContainer'
+import Sidebar from './Sidebar'
 
 function AppLayout() {
   return (

@@ -21,8 +21,8 @@ function LabelStatsPanel({
 }: LabelStatsPanelProps) {
   return (
     <>
-      <article className="ui-card dataset-side-card">
-        <span className="ui-badge ui-badge-primary">Progress</span>
+      <article className="ui-card dataset-side-card dataset-progress-card">
+        <span className="ui-badge ui-badge-primary">작업 진행률</span>
 
         <h2>{progress}%</h2>
 
@@ -36,7 +36,7 @@ function LabelStatsPanel({
       </article>
 
       <article className="ui-card dataset-side-card">
-        <span className="ui-badge ui-badge-primary">Label Stats</span>
+        <span className="ui-badge ui-badge-primary">라벨 통계</span>
 
         <div className="dataset-label-stats">
           <div>

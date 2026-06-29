@@ -1,4 +1,4 @@
-import type { LabelName } from '../../../../types/label.ts'
+import type { LabelName } from '../../../../types/label'
 
 type LabelFilter = LabelName | 'all' | 'unlabeled'
 
@@ -27,7 +27,7 @@ function FrameToolbar({
   return (
     <div className="dataset-toolbar">
       <div className="dataset-toolbar-left">
-        <span className="ui-badge ui-badge-primary">Frame Gallery</span>
+        <span className="ui-badge ui-badge-primary">프레임 갤러리</span>
         <span className="ui-badge">
           {filteredCount} / {totalCount} 표시
         </span>

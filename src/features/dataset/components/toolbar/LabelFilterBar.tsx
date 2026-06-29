@@ -1,4 +1,4 @@
-import type { LabelName } from '../../../../types/label.ts'
+import type { LabelName } from '../../../../types/label'
 
 export type FrameFilter = 'all' | 'unlabeled' | LabelName
 
@@ -31,9 +31,7 @@ function LabelFilterBar({
 
       <button
         type="button"
-        className={
-          filter === 'unlabeled' ? 'filter-button active' : 'filter-button'
-        }
+        className={filter === 'unlabeled' ? 'filter-button active' : 'filter-button'}
         onClick={() => onChangeFilter('unlabeled')}
       >
         미분류 {labelStats.unlabeled}
@@ -43,9 +41,7 @@ function LabelFilterBar({
         <button
           key={labelName}
           type="button"
-          className={
-            filter === labelName ? 'filter-button active' : 'filter-button'
-          }
+          className={filter === labelName ? 'filter-button active' : 'filter-button'}
           onClick={() => onChangeFilter(labelName)}
         >
           {labelText[labelName]} {labelStats[labelName]}

@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import AppLayout from '../common/layout/AppLayout'
-import ProtectedRoute from '../common/shared/ProtectedRoute.tsx'
+import ProtectedRoute from '../common/shared/ProtectedRoute'
 
 import HomePage from '../pages/home/HomePage'
 import LoginPage from '../pages/auth/LoginPage'
@@ -12,6 +12,7 @@ import DatasetDetailPage from '../pages/dataset/DatasetDetailPage'
 import UploadPage from '../pages/upload/UploadPage'
 import PricingPage from '../pages/pricing/PricingPage'
 import AdminUsersPage from '../pages/admin/AdminUsersPage'
+import NotFoundPage from '../pages/notFound/NotFoundPage'
 
 export const router = createBrowserRouter([
   {
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
             <AdminUsersPage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },

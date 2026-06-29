@@ -3,9 +3,11 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuthStore } from '../../stores/authStore'
+import { useToast } from '../../common/ui'
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
 
   const register = useAuthStore((state) => state.register)
   const isLoading = useAuthStore((state) => state.isLoading)
@@ -30,26 +32,66 @@ function RegisterPage() {
         password,
       })
 
+      showToast('회원가입이 완료되었습니다. 로그인해주세요.', 'success')
       navigate('/login')
     } catch (error: any) {
-      setErrorMessage(
+      const message =
         error.response?.data?.message ||
-          '회원가입에 실패했습니다. 입력값을 확인해주세요.',
-      )
+        '회원가입에 실패했습니다. 입력값을 확인해주세요.'
+
+      setErrorMessage(message)
+      showToast(message, 'error')
     }
   }
 
   return (
     <section className="auth-page">
+      <div className="auth-brand-panel ui-card">
+        <span className="ui-badge ui-badge-primary">Start building</span>
+
+        <div className="auth-brand-content">
+          <h1>
+            나만의 AI 학습
+            <br />
+            데이터셋을 만드세요.
+          </h1>
+
+          <p>
+            처음에는 수동 라벨링으로 시작하고, 이후 Bounding Box와 자동 라벨링을
+            연결해 더 강력한 데이터셋 제작 흐름으로 확장할 수 있습니다.
+          </p>
+        </div>
+
+        <div className="auth-flow-list">
+          <div>
+            <strong>Fire</strong>
+            <span>화재 데이터</span>
+          </div>
+
+          <div>
+            <strong>Smoke</strong>
+            <span>연기 데이터</span>
+          </div>
+
+          <div>
+            <strong>Light</strong>
+            <span>차량 등화류</span>
+          </div>
+
+          <div>
+            <strong>Negative</strong>
+            <span>오탐 억제 데이터</span>
+          </div>
+        </div>
+      </div>
+
       <div className="auth-card ui-card">
         <div className="auth-card-header">
           <span className="ui-badge ui-badge-primary">Create account</span>
 
-          <h1>회원가입</h1>
+          <h2>회원가입</h2>
 
-          <p>
-            계정을 생성하고 영상 기반 AI 학습 데이터셋 제작을 시작합니다.
-          </p>
+          <p>계정을 생성하고 영상 기반 AI 학습 데이터셋 제작을 시작합니다.</p>
         </div>
 
         {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
@@ -152,39 +194,6 @@ function RegisterPage() {
           이미 계정이 있나요? <Link to="/login">로그인</Link>
         </p>
       </div>
-
-      <aside className="auth-side-panel ui-card">
-        <span className="ui-badge ui-badge-primary">Start building</span>
-
-        <h2>내 데이터셋을 직접 만들고 성장시키는 작업 공간</h2>
-
-        <p>
-          처음에는 수동 라벨링으로 시작하고, 이후 Bounding Box와 자동 라벨링을
-          연결해 더 강력한 데이터셋 제작 흐름으로 확장할 수 있습니다.
-        </p>
-
-        <div className="auth-flow-list">
-          <div>
-            <strong>Fire</strong>
-            <span>화재 데이터</span>
-          </div>
-
-          <div>
-            <strong>Smoke</strong>
-            <span>연기 데이터</span>
-          </div>
-
-          <div>
-            <strong>Light</strong>
-            <span>차량 등화류</span>
-          </div>
-
-          <div>
-            <strong>Negative</strong>
-            <span>오탐 억제 데이터</span>
-          </div>
-        </div>
-      </aside>
     </section>
   )
 }

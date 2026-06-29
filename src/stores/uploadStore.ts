@@ -4,7 +4,7 @@ import {
   getVideoFramesApi,
   uploadVideoApi,
   type UploadVideoResponse,
-} from '../features/upload/api/uploadApi.ts'
+} from '../features/upload/api/uploadApi'
 
 import type { DatasetFrame } from '../types/frame'
 

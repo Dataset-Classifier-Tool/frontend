@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
-import type { DatasetFrame } from '../../../../types/frame.ts'
-import type { LabelName } from '../../../../types/label.ts'
+import type { DatasetFrame } from '../../../../types/frame'
+import type { LabelName } from '../../../../types/label'
 
 type LabelOption = {
   value: LabelName
@@ -118,7 +118,7 @@ function FrameModal({
 
           <aside className="frame-modal-panel">
             <article className="frame-modal-card">
-              <span className="ui-badge ui-badge-primary">Current Label</span>
+              <span className="ui-badge ui-badge-primary">현재 라벨</span>
 
               <h3>{currentLabelOption ? currentLabelOption.label : '미분류'}</h3>
 

@@ -1,11 +1,11 @@
 import apiClient from '../../../common/api/axios'
-import type { ApiResponse } from '../../../types/api.ts'
+import type { ApiResponse } from '../../../types/api'
 import type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
   User,
-} from '../../../types/auth.ts'
+} from '../../../types/auth'
 
 export async function registerApi(payload: RegisterRequest) {
   const response = await apiClient.post<ApiResponse<User>>(

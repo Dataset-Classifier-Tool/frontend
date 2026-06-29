@@ -7,9 +7,14 @@ type PageHeaderProps = {
   actions?: ReactNode
 }
 
-function PageHeader({ badge, title, description, actions }: PageHeaderProps) {
+function PageHeader({
+  badge,
+  title,
+  description,
+  actions,
+}: PageHeaderProps) {
   return (
-    <div className="app-page-header">
+    <header className="app-page-header">
       <div className="app-page-title-group">
         {badge && <span className="ui-badge ui-badge-primary">{badge}</span>}
 
@@ -19,7 +24,7 @@ function PageHeader({ badge, title, description, actions }: PageHeaderProps) {
       </div>
 
       {actions && <div className="app-page-actions">{actions}</div>}
-    </div>
+    </header>
   )
 }
 

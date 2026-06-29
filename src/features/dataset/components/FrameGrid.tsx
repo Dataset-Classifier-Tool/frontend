@@ -27,7 +27,9 @@ function FrameGrid({
 }: FrameGridProps) {
   if (frames.length === 0) {
     return (
-      <div className="ui-empty">
+      <div className="ui-empty dataset-frame-empty">
+        <div className="dataset-frame-empty-icon">🖼️</div>
+
         <div>
           <h3 className="ui-empty-title">표시할 프레임이 없습니다</h3>
           <p className="ui-empty-description">

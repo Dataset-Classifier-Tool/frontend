@@ -3,9 +3,12 @@ import { Link } from 'react-router-dom'
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
 
+type ButtonSize = 'sm' | 'md' | 'lg'
+
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
   variant?: ButtonVariant
+  size?: ButtonSize
   full?: boolean
 }
 
@@ -13,11 +16,29 @@ type ButtonLinkProps = {
   children: ReactNode
   to: string
   variant?: ButtonVariant
+  size?: ButtonSize
   full?: boolean
+  className?: string
 }
 
-function getButtonClassName(variant: ButtonVariant, full?: boolean) {
-  return ['ui-button', `ui-button-${variant}`, full ? 'ui-button-full' : '']
+function getButtonClassName({
+  variant,
+  size,
+  full,
+  className = '',
+}: {
+  variant: ButtonVariant
+  size: ButtonSize
+  full?: boolean
+  className?: string
+}) {
+  return [
+    'ui-button',
+    `ui-button-${variant}`,
+    size !== 'md' ? `ui-button-${size}` : '',
+    full ? 'ui-button-full' : '',
+    className,
+  ]
     .filter(Boolean)
     .join(' ')
 }
@@ -25,13 +46,19 @@ function getButtonClassName(variant: ButtonVariant, full?: boolean) {
 export function Button({
   children,
   variant = 'primary',
+  size = 'md',
   full = false,
   className = '',
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={`${getButtonClassName(variant, full)} ${className}`.trim()}
+      className={getButtonClassName({
+        variant,
+        size,
+        full,
+        className,
+      })}
       {...props}
     >
       {children}
@@ -43,10 +70,20 @@ export function ButtonLink({
   children,
   to,
   variant = 'primary',
+  size = 'md',
   full = false,
+  className = '',
 }: ButtonLinkProps) {
   return (
-    <Link to={to} className={getButtonClassName(variant, full)}>
+    <Link
+      to={to}
+      className={getButtonClassName({
+        variant,
+        size,
+        full,
+        className,
+      })}
+    >
       {children}
     </Link>
   )

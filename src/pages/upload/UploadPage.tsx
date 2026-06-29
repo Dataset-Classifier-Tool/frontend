@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { getDatasetsApi } from '../../features/dataset/api/datasetApi.ts'
-import { uploadVideoApi } from '../../features/upload/api/uploadApi.ts'
+import { getDatasetsApi } from '../../features/dataset/api/datasetApi'
+import { uploadVideoApi } from '../../features/upload/api/uploadApi'
 import {
   Page,
   PageHeader,
   StatCard,
   StatsGrid,
+  useToast,
 } from '../../common/ui'
 import type { Dataset } from '../../types/dataset'
 
@@ -28,6 +29,7 @@ type TargetWidthOption = 'original' | '640' | '960' | '1280' | '1920'
 function UploadPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { showToast } = useToast()
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -61,8 +63,9 @@ function UploadPage() {
       })
       .catch(() => {
         setErrorMessage('데이터셋 목록을 불러오지 못했습니다.')
+        showToast('데이터셋 목록을 불러오지 못했습니다.', 'error')
       })
-  }, [searchParams])
+  }, [searchParams, showToast])
 
   const selectedDataset = datasets.find((dataset) => dataset.id === Number(datasetId))
 
@@ -121,10 +124,12 @@ function UploadPage() {
     if (fileError) {
       setFile(null)
       setErrorMessage(fileError)
+      showToast(fileError, 'warning')
       return
     }
 
     setFile(selectedFile)
+    showToast('영상 파일이 선택되었습니다.', 'success')
   }
 
   const clearSelectedFile = () => {
@@ -149,6 +154,7 @@ function UploadPage() {
 
     if (!datasetId) {
       setErrorMessage('영상을 업로드할 데이터셋을 선택해주세요.')
+      showToast('영상을 업로드할 데이터셋을 선택해주세요.', 'warning')
       return
     }
 
@@ -156,6 +162,7 @@ function UploadPage() {
 
     if (fileError) {
       setErrorMessage(fileError)
+      showToast(fileError, 'warning')
       return
     }
 
@@ -163,6 +170,7 @@ function UploadPage() {
 
     if (intervalError) {
       setErrorMessage(intervalError)
+      showToast(intervalError, 'warning')
       return
     }
 
@@ -188,9 +196,10 @@ function UploadPage() {
         ? ` / 저장 해상도 ${response.data.target_width}px`
         : ' / 원본 해상도 유지'
 
-      setSuccessMessage(
-        `영상 업로드 성공! 추출 프레임 ${response.data.extracted_frame_count}개${widthText}${autoLabelText}`,
-      )
+      const message = `영상 업로드 성공! 추출 프레임 ${response.data.extracted_frame_count}개${widthText}${autoLabelText}`
+
+      setSuccessMessage(message)
+      showToast('영상 업로드가 완료되었습니다.', 'success')
 
       clearSelectedFile()
 
@@ -198,7 +207,11 @@ function UploadPage() {
         navigate(`/datasets/${datasetId}`)
       }, 1000)
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || '영상 업로드 중 오류가 발생했습니다.')
+      const message =
+        error.response?.data?.message || '영상 업로드 중 오류가 발생했습니다.'
+
+      setErrorMessage(message)
+      showToast(message, 'error')
     } finally {
       setIsLoading(false)
     }
@@ -255,7 +268,7 @@ function UploadPage() {
       <div className="upload-layout">
         <main className="upload-main-panel ui-card">
           <div className="upload-section-head">
-            <span className="ui-badge ui-badge-primary">Upload Settings</span>
+            <span className="ui-badge ui-badge-primary">업로드 설정</span>
             <h2>원천 영상 선택</h2>
             <p>
               데이터셋, 추출 간격, 저장 해상도, 자동 라벨링 여부를 설정한 뒤

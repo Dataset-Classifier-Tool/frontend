@@ -1,4 +1,4 @@
-import type { Dataset } from '../../../../types/dataset.ts'
+import type { Dataset } from '../../../../types/dataset'
 
 type DatasetInfoPanelProps = {
   dataset: Dataset
@@ -22,7 +22,7 @@ function formatDate(dateText: string | null) {
 function DatasetInfoPanel({ dataset, frameCount }: DatasetInfoPanelProps) {
   return (
     <article className="ui-card dataset-side-card">
-      <span className="ui-badge ui-badge-primary">Dataset Info</span>
+      <span className="ui-badge ui-badge-primary">데이터셋 정보</span>
 
       <div className="dataset-info-list">
         <div>

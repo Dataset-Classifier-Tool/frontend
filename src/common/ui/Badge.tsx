@@ -7,6 +7,7 @@ type BadgeVariant =
   | 'warning'
   | 'danger'
   | 'muted'
+  | 'info'
 
 type BadgeProps = {
   children: ReactNode
@@ -19,8 +20,11 @@ export function Badge({
   variant = 'default',
   className = '',
 }: BadgeProps) {
+  const variantClassName =
+    variant === 'default' ? '' : `ui-badge-${variant}`
+
   return (
-    <span className={`ui-badge ui-badge-${variant} ${className}`.trim()}>
+    <span className={`ui-badge ${variantClassName} ${className}`.trim()}>
       {children}
     </span>
   )

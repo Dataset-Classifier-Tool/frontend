@@ -6,11 +6,14 @@ import {
   updateUserMembershipApi,
 } from '../../features/admin'
 import {
+  ConfirmDialog,
   EmptyState,
   Page,
   PageHeader,
+  Skeleton,
   StatCard,
   StatsGrid,
+  useToast,
 } from '../../common/ui'
 import type { MembershipType } from '../../types/auth'
 import type { AdminUser } from '../../types/user'
@@ -28,10 +31,14 @@ const MEMBERSHIP_BADGE_CLASS: Record<MembershipType, string> = {
 }
 
 function AdminUsersPage() {
+  const { showToast } = useToast()
+
   const [users, setUsers] = useState<AdminUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [searchKeyword, setSearchKeyword] = useState('')
+  const [activeTarget, setActiveTarget] = useState<AdminUser | null>(null)
+  const [isUpdatingActive, setIsUpdatingActive] = useState(false)
 
   const fetchUsers = async () => {
     setIsLoading(true)
@@ -41,9 +48,11 @@ function AdminUsersPage() {
       const response = await getAdminUsersApi()
       setUsers(response.data)
     } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message || '회원 목록을 불러오지 못했습니다.',
-      )
+      const message =
+        error.response?.data?.message || '회원 목록을 불러오지 못했습니다.'
+
+      setErrorMessage(message)
+      showToast(message, 'error')
     } finally {
       setIsLoading(false)
     }
@@ -89,181 +98,225 @@ function AdminUsersPage() {
       setUsers((prevUsers) =>
         prevUsers.map((user) => (user.id === userId ? response.data : user)),
       )
+
+      showToast('회원 등급이 변경되었습니다.', 'success')
     } catch (error: any) {
-      alert(error.response?.data?.message || '회원 등급 변경에 실패했습니다.')
+      showToast(
+        error.response?.data?.message || '회원 등급 변경에 실패했습니다.',
+        'error',
+      )
     }
   }
 
-  const handleActiveToggle = async (user: AdminUser) => {
-    const confirmed = window.confirm(
-      user.is_active
-        ? `${user.email} 계정을 비활성화할까요?`
-        : `${user.email} 계정을 활성화할까요?`,
-    )
+  const handleActiveRequest = (user: AdminUser) => {
+    setActiveTarget(user)
+  }
 
-    if (!confirmed) return
+  const handleActiveCancel = () => {
+    if (isUpdatingActive) return
+    setActiveTarget(null)
+  }
+
+  const handleActiveConfirm = async () => {
+    if (!activeTarget) return
+
+    setIsUpdatingActive(true)
 
     try {
-      const response = await updateUserActiveApi(user.id, {
-        is_active: !user.is_active,
+      const response = await updateUserActiveApi(activeTarget.id, {
+        is_active: !activeTarget.is_active,
       })
 
       setUsers((prevUsers) =>
-        prevUsers.map((item) => (item.id === user.id ? response.data : item)),
+        prevUsers.map((item) =>
+          item.id === activeTarget.id ? response.data : item,
+        ),
       )
+
+      showToast(
+        activeTarget.is_active
+          ? '회원 계정이 비활성화되었습니다.'
+          : '회원 계정이 활성화되었습니다.',
+        'success',
+      )
+
+      setActiveTarget(null)
     } catch (error: any) {
-      alert(error.response?.data?.message || '활성화 상태 변경에 실패했습니다.')
+      showToast(
+        error.response?.data?.message || '활성화 상태 변경에 실패했습니다.',
+        'error',
+      )
+    } finally {
+      setIsUpdatingActive(false)
     }
   }
 
   return (
-    <Page className="admin-page">
-      <PageHeader
-        badge="Admin Console"
-        title="회원 관리"
-        description="회원 등급, 가입 방식, 활성화 상태를 관리하고 플랫폼 사용 권한을 제어합니다."
-        actions={
-          <button
-            type="button"
-            className="ui-button ui-button-secondary"
-            onClick={fetchUsers}
-            disabled={isLoading}
-          >
-            {isLoading ? '새로고침 중...' : '회원 목록 새로고침'}
-          </button>
-        }
-      />
-
-      {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
-
-      <StatsGrid>
-        <StatCard label="전체 회원" value={totalUsers} help="등록된 계정" />
-        <StatCard label="활성 회원" value={activeUsers} help="사용 가능 계정" />
-        <StatCard label="비활성 회원" value={inactiveUsers} help="접근 제한 계정" />
-        <StatCard
-          label="프리미엄 / 관리자"
-          value={`${premiumUsers} / ${adminUsers}`}
-          help="상위 권한 계정"
+    <>
+      <Page className="admin-page">
+        <PageHeader
+          badge="Admin Console"
+          title="회원 관리"
+          description="회원 등급, 가입 방식, 활성화 상태를 관리하고 플랫폼 사용 권한을 제어합니다."
+          actions={
+            <button
+              type="button"
+              className="ui-button ui-button-secondary"
+              onClick={fetchUsers}
+              disabled={isLoading}
+            >
+              {isLoading ? '새로고침 중...' : '회원 목록 새로고침'}
+            </button>
+          }
         />
-      </StatsGrid>
 
-      <section className="admin-panel ui-card">
-        <div className="admin-toolbar">
-          <div>
-            <span className="ui-badge ui-badge-primary">Users</span>
-            <h2>플랫폼 회원</h2>
-            <p>
-              총 {users.length}명 중 {filteredUsers.length}명이 표시됩니다.
-            </p>
+        {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
+
+        <StatsGrid>
+          <StatCard label="전체 회원" value={totalUsers} help="등록된 계정" />
+          <StatCard label="활성 회원" value={activeUsers} help="사용 가능 계정" />
+          <StatCard label="비활성 회원" value={inactiveUsers} help="접근 제한 계정" />
+          <StatCard
+            label="프리미엄 / 관리자"
+            value={`${premiumUsers} / ${adminUsers}`}
+            help="상위 권한 계정"
+          />
+        </StatsGrid>
+
+        <section className="admin-panel ui-card">
+          <div className="admin-toolbar">
+            <div>
+              <span className="ui-badge ui-badge-primary">회원 목록</span>
+              <h2>플랫폼 회원</h2>
+              <p>
+                총 {users.length}명 중 {filteredUsers.length}명이 표시됩니다.
+              </p>
+            </div>
+
+            <div className="ui-search admin-search">
+              <span className="ui-search-icon">⌕</span>
+              <input
+                className="ui-input"
+                type="search"
+                value={searchKeyword}
+                onChange={(event) => setSearchKeyword(event.target.value)}
+                placeholder="이름, 닉네임, 이메일, 등급 검색"
+              />
+            </div>
           </div>
 
-          <div className="ui-search admin-search">
-            <span className="ui-search-icon">⌕</span>
-            <input
-              className="ui-input"
-              type="search"
-              value={searchKeyword}
-              onChange={(event) => setSearchKeyword(event.target.value)}
-              placeholder="이름, 닉네임, 이메일, 등급 검색"
+          {isLoading ? (
+            <Skeleton rows={4} />
+          ) : filteredUsers.length === 0 ? (
+            <EmptyState
+              title="표시할 회원이 없습니다"
+              description="검색어를 변경하거나 회원 목록을 새로고침해보세요."
             />
-          </div>
-        </div>
+          ) : (
+            <div className="admin-user-grid">
+              {filteredUsers.map((user) => (
+                <article
+                  className="admin-user-card ui-card ui-card-hover"
+                  key={user.id}
+                >
+                  <div className="admin-user-card-top">
+                    <div className="admin-user-avatar">
+                      {user.name?.charAt(0) || user.email.charAt(0) || 'U'}
+                    </div>
 
-        {isLoading ? (
-          <EmptyState
-            title="회원 목록을 불러오는 중입니다"
-            description="잠시만 기다려주세요."
-          />
-        ) : filteredUsers.length === 0 ? (
-          <EmptyState
-            title="표시할 회원이 없습니다"
-            description="검색어를 변경하거나 회원 목록을 새로고침해보세요."
-          />
-        ) : (
-          <div className="admin-user-grid">
-            {filteredUsers.map((user) => (
-              <article className="admin-user-card ui-card ui-card-hover" key={user.id}>
-                <div className="admin-user-card-top">
-                  <div className="admin-user-avatar">
-                    {user.name?.charAt(0) || user.email.charAt(0) || 'U'}
+                    <div className="admin-user-main">
+                      <strong>{user.name || '이름 없음'}</strong>
+                      <span>{user.nickname || user.email}</span>
+                    </div>
+
+                    <span
+                      className={`ui-badge ${
+                        user.is_active ? 'ui-badge-primary' : 'ui-badge-danger'
+                      }`}
+                    >
+                      {user.is_active ? '활성' : '비활성'}
+                    </span>
                   </div>
 
-                  <div className="admin-user-main">
-                    <strong>{user.name || '이름 없음'}</strong>
-                    <span>{user.nickname || user.email}</span>
+                  <div className="admin-user-info">
+                    <div>
+                      <span>이메일</span>
+                      <strong>{user.email}</strong>
+                    </div>
+
+                    <div>
+                      <span>가입 방식</span>
+                      <strong>{user.provider}</strong>
+                    </div>
+
+                    <div>
+                      <span>생년월일</span>
+                      <strong>{user.birth_date || '-'}</strong>
+                    </div>
+
+                    <div>
+                      <span>현재 등급</span>
+                      <strong>
+                        <em
+                          className={`ui-badge ${
+                            MEMBERSHIP_BADGE_CLASS[user.membership_type]
+                          }`}
+                        >
+                          {MEMBERSHIP_LABEL[user.membership_type]}
+                        </em>
+                      </strong>
+                    </div>
                   </div>
 
-                  <span
-                    className={`ui-badge ${
-                      user.is_active ? 'ui-badge-primary' : 'ui-badge-danger'
-                    }`}
-                  >
-                    {user.is_active ? '활성' : '비활성'}
-                  </span>
-                </div>
+                  <div className="admin-user-actions">
+                    <select
+                      className="ui-select"
+                      value={user.membership_type}
+                      onChange={(event) =>
+                        handleMembershipChange(
+                          user.id,
+                          event.target.value as MembershipType,
+                        )
+                      }
+                    >
+                      <option value="free">무료</option>
+                      <option value="premium">프리미엄</option>
+                      <option value="admin">관리자</option>
+                    </select>
 
-                <div className="admin-user-info">
-                  <div>
-                    <span>이메일</span>
-                    <strong>{user.email}</strong>
+                    <button
+                      type="button"
+                      className={`ui-button ${
+                        user.is_active ? 'ui-button-danger' : 'ui-button-secondary'
+                      }`}
+                      onClick={() => handleActiveRequest(user)}
+                    >
+                      {user.is_active ? '비활성화' : '활성화'}
+                    </button>
                   </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </Page>
 
-                  <div>
-                    <span>가입 방식</span>
-                    <strong>{user.provider}</strong>
-                  </div>
-
-                  <div>
-                    <span>생년월일</span>
-                    <strong>{user.birth_date || '-'}</strong>
-                  </div>
-
-                  <div>
-                    <span>현재 등급</span>
-                    <strong>
-                      <em
-                        className={`ui-badge ${
-                          MEMBERSHIP_BADGE_CLASS[user.membership_type]
-                        }`}
-                      >
-                        {MEMBERSHIP_LABEL[user.membership_type]}
-                      </em>
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="admin-user-actions">
-                  <select
-                    className="ui-select"
-                    value={user.membership_type}
-                    onChange={(event) =>
-                      handleMembershipChange(
-                        user.id,
-                        event.target.value as MembershipType,
-                      )
-                    }
-                  >
-                    <option value="free">무료</option>
-                    <option value="premium">프리미엄</option>
-                    <option value="admin">관리자</option>
-                  </select>
-
-                  <button
-                    type="button"
-                    className={`ui-button ${
-                      user.is_active ? 'ui-button-danger' : 'ui-button-secondary'
-                    }`}
-                    onClick={() => handleActiveToggle(user)}
-                  >
-                    {user.is_active ? '비활성화' : '활성화'}
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-    </Page>
+      <ConfirmDialog
+        open={Boolean(activeTarget)}
+        title={activeTarget?.is_active ? '계정을 비활성화할까요?' : '계정을 활성화할까요?'}
+        description={
+          activeTarget
+            ? `${activeTarget.email} 계정의 사용 가능 상태를 변경합니다.`
+            : ''
+        }
+        confirmText={activeTarget?.is_active ? '비활성화' : '활성화'}
+        cancelText="취소"
+        variant={activeTarget?.is_active ? 'danger' : 'primary'}
+        isLoading={isUpdatingActive}
+        onConfirm={handleActiveConfirm}
+        onCancel={handleActiveCancel}
+      />
+    </>
   )
 }
 

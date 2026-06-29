@@ -3,9 +3,11 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuthStore } from '../../stores/authStore'
+import { useToast } from '../../common/ui'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
 
   const login = useAuthStore((state) => state.login)
   const isLoading = useAuthStore((state) => state.isLoading)
@@ -29,28 +31,71 @@ function LoginPage() {
     setErrorMessage('')
 
     try {
-      await login({ email, password })
+      await login({
+        email,
+        password,
+      })
+
+      showToast('로그인되었습니다.', 'success')
       navigate('/datasets')
     } catch (error: any) {
-      setErrorMessage(
+      const message =
         error.response?.data?.message ||
-          '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.',
-      )
+        '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'
+
+      setErrorMessage(message)
+      showToast(message, 'error')
     }
   }
 
   return (
     <section className="auth-page">
+      <div className="auth-brand-panel ui-card">
+        <span className="ui-badge ui-badge-primary">AI Dataset Platform</span>
+
+        <div className="auth-brand-content">
+          <h1>
+            다시 돌아온 것을
+            <br />
+            환영합니다.
+          </h1>
+
+          <p>
+            Dataset Classifier Tool에서 영상 업로드, 프레임 추출, 라벨링,
+            Export까지 이어지는 AI 학습 데이터셋 제작 흐름을 계속 진행하세요.
+          </p>
+        </div>
+
+        <div className="auth-flow-list">
+          <div>
+            <strong>01</strong>
+            <span>Dataset 생성</span>
+          </div>
+
+          <div>
+            <strong>02</strong>
+            <span>Video Upload</span>
+          </div>
+
+          <div>
+            <strong>03</strong>
+            <span>Frame Labeling</span>
+          </div>
+
+          <div>
+            <strong>04</strong>
+            <span>YOLO Export</span>
+          </div>
+        </div>
+      </div>
+
       <div className="auth-card ui-card">
         <div className="auth-card-header">
           <span className="ui-badge ui-badge-primary">Welcome back</span>
 
-          <h1>로그인</h1>
+          <h2>로그인</h2>
 
-          <p>
-            Dataset Classifier Tool에 다시 오신 것을 환영합니다.
-            로그인 후 데이터셋 제작 작업을 이어갈 수 있습니다.
-          </p>
+          <p>계정으로 접속하고 데이터셋 제작 작업을 이어갑니다.</p>
         </div>
 
         {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
@@ -125,39 +170,6 @@ function LoginPage() {
           아직 계정이 없나요? <Link to="/register">회원가입</Link>
         </p>
       </div>
-
-      <aside className="auth-side-panel ui-card">
-        <span className="ui-badge ui-badge-primary">AI Dataset Workflow</span>
-
-        <h2>데이터 수집부터 학습 준비까지 한 번에</h2>
-
-        <p>
-          영상 업로드, 프레임 추출, 수동 라벨링, YOLO Export까지 연결되는
-          개인 AI 데이터셋 제작 플랫폼입니다.
-        </p>
-
-        <div className="auth-flow-list">
-          <div>
-            <strong>01</strong>
-            <span>Dataset 생성</span>
-          </div>
-
-          <div>
-            <strong>02</strong>
-            <span>Video Upload</span>
-          </div>
-
-          <div>
-            <strong>03</strong>
-            <span>Frame Labeling</span>
-          </div>
-
-          <div>
-            <strong>04</strong>
-            <span>YOLO Export</span>
-          </div>
-        </div>
-      </aside>
     </section>
   )
 }

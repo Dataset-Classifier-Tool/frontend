@@ -1,8 +1,9 @@
 import { create } from 'zustand'
-import { loginApi, meApi, registerApi } from '../features/auth/api/authApi.ts'
+
+import { loginApi, meApi, registerApi } from '../features/auth/api/authApi'
 import type { LoginRequest, RegisterRequest, User } from '../types/auth'
 
-interface AuthState {
+type AuthState = {
   user: User | null
   accessToken: string | null
   refreshToken: string | null
@@ -57,26 +58,31 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   loadMe: async () => {
-    const token = localStorage.getItem('accessToken')
+    const accessToken = localStorage.getItem('accessToken')
+    const refreshToken = localStorage.getItem('refreshToken')
 
-    if (!token) {
+    if (!accessToken) {
       set({
         user: null,
         accessToken: null,
         refreshToken: null,
         isAuthenticated: false,
+        isLoading: false,
       })
       return
     }
+
+    set({ isLoading: true })
 
     try {
       const response = await meApi()
 
       set({
         user: response.data,
-        accessToken: token,
-        refreshToken: localStorage.getItem('refreshToken'),
+        accessToken,
+        refreshToken,
         isAuthenticated: true,
+        isLoading: false,
       })
     } catch {
       localStorage.removeItem('accessToken')
@@ -87,6 +93,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         accessToken: null,
         refreshToken: null,
         isAuthenticated: false,
+        isLoading: false,
       })
     }
   },
@@ -100,6 +107,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      isLoading: false,
     })
   },
 }))

@@ -21,7 +21,9 @@ function Section({
         <div className="app-section-header">
           <div>
             {title && <h2 className="app-section-title">{title}</h2>}
-            {description && <p className="app-section-description">{description}</p>}
+            {description && (
+              <p className="app-section-description">{description}</p>
+            )}
           </div>
 
           {actions && <div className="app-page-actions">{actions}</div>}

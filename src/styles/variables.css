@@ -5,111 +5,49 @@ Variables
 */
 
 :root {
-
-    /* ==============================
-       Font
-    ============================== */
-
     --font-family:
         Inter,
         Pretendard,
         "Noto Sans KR",
         sans-serif;
 
-    /* ==============================
-       Background
-    ============================== */
-
     --bg-color: #0d1117;
     --bg-secondary: #111827;
     --bg-tertiary: #161b22;
 
-    /* ==============================
-       Sidebar
-    ============================== */
-
     --sidebar-bg: #0f172a;
-
-    /* ==============================
-       Card
-    ============================== */
-
     --card-bg: #161b22;
-
-    /* ==============================
-       Border
-    ============================== */
-
     --border-color: #2d333b;
-
-    /* ==============================
-       Text
-    ============================== */
 
     --text-primary: #ffffff;
     --text-secondary: #94a3b8;
     --text-disabled: #64748b;
 
-    /* ==============================
-       Brand
-    ============================== */
-
     --primary-color: #3ecf8e;
     --primary-hover: #2cb67d;
-
-    /* ==============================
-       Status
-    ============================== */
 
     --success-color: #22c55e;
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
     --info-color: #3b82f6;
 
-    /* ==============================
-       Dataset Label
-    ============================== */
-
     --fire-color: #ef4444;
     --smoke-color: #8b5cf6;
     --carlight-color: #f59e0b;
     --negative-color: #64748b;
-
-    /* ==============================
-       Radius
-    ============================== */
 
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
 
-    /* ==============================
-       Shadow
-    ============================== */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.18);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.28);
 
-    --shadow-sm:
-        0 2px 8px rgba(0,0,0,.15);
-
-    --shadow-md:
-        0 8px 24px rgba(0,0,0,.18);
-
-    --shadow-lg:
-        0 12px 40px rgba(0,0,0,.28);
-
-    /* ==============================
-       Layout
-    ============================== */
-
-    --sidebar-width: 84px;
+    --sidebar-width: 310px;
     --header-height: 72px;
-
     --content-width: 1500px;
 
-    /* ==============================
-       Transition
-    ============================== */
-
-    --transition:
-        all .2s ease;
+    --transition: all 0.2s ease;
 }

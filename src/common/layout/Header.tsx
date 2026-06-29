@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 
-import { useAuthStore } from '../../stores/authStore.ts'
+import { useAuthStore } from '../../stores/authStore'
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': {
@@ -31,6 +31,10 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
     title: '회원가입',
     subtitle: '새 계정을 생성하고 데이터셋 제작을 시작합니다.',
   },
+  '/oauth/callback': {
+    title: '소셜 로그인',
+    subtitle: '소셜 계정 인증 결과를 처리합니다.',
+  },
 }
 
 function getPageMeta(pathname: string) {
@@ -54,6 +58,8 @@ function Header() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   const pageMeta = getPageMeta(location.pathname)
+  const displayName = user?.nickname || user?.name || '사용자'
+  const membership = user?.membership_type || 'free'
 
   return (
     <header className="app-header">
@@ -67,13 +73,11 @@ function Header() {
       <div className="app-header-right">
         {isAuthenticated ? (
           <div className="app-user-chip">
-            <div className="app-user-avatar">
-              {(user?.nickname || user?.name || 'U').slice(0, 1)}
-            </div>
+            <div className="app-user-avatar">{displayName.slice(0, 1)}</div>
 
             <div>
-              <div className="app-user-name">{user?.nickname || user?.name || '사용자'}</div>
-              <div className="app-user-role">{user?.membership_type || 'free'}</div>
+              <div className="app-user-name">{displayName}</div>
+              <div className="app-user-role">{membership}</div>
             </div>
           </div>
         ) : (

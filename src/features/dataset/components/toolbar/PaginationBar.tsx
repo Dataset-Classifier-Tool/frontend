@@ -22,12 +22,17 @@ function PaginationBar({
   return (
     <div className="pagination-bar">
       <div className="pagination-info">
-        <strong>
-          {startIndex + 1} - {endIndex}
-        </strong>
-        <span>
-          / 전체 {totalCount}개 · 페이지당 {pageSize}개
-        </span>
+        <span className="ui-badge ui-badge-primary">Page</span>
+
+        <div>
+          <strong>
+            {startIndex + 1} - {endIndex}
+          </strong>
+
+          <span>
+            / 전체 {totalCount}개 · 페이지당 {pageSize}개
+          </span>
+        </div>
       </div>
 
       <div className="pagination-actions">

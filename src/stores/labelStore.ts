@@ -6,7 +6,7 @@ import {
   updateLabelApi,
   type CreateLabelRequest,
   type UpdateLabelRequest,
-} from '../features/dataset/api/labelApi.ts'
+} from '../features/dataset/api/labelApi'
 
 import type { Label } from '../types/label'
 

@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { getDatasetDetailApi } from '../../features/dataset/api/datasetApi.ts'
+import { getDatasetDetailApi } from '../../features/dataset/api/datasetApi'
 import {
   downloadDatasetYoloApi,
   downloadDatasetZipApi,
-} from '../../features/dataset/api/exportApi.ts'
-import { createLabelApi, deleteLabelApi } from '../../features/dataset/api/labelApi.ts'
+} from '../../features/dataset/api/exportApi'
+import { createLabelApi, deleteLabelApi } from '../../features/dataset/api/labelApi'
 import {
   EmptyState,
+  Loading,
   Page,
   PageHeader,
   StatCard,
   StatsGrid,
+  useToast,
 } from '../../common/ui'
 import {
   AutoLabelPanel,
@@ -48,30 +50,10 @@ type LabelStats = {
 const PAGE_SIZE = 24
 
 const LABEL_OPTIONS: LabelOption[] = [
-  {
-    value: 'fire',
-    label: '화재',
-    className: 'dataset-label-fire',
-    shortcut: 'F',
-  },
-  {
-    value: 'smoke',
-    label: '연기',
-    className: 'dataset-label-smoke',
-    shortcut: 'S',
-  },
-  {
-    value: 'carlight',
-    label: '차량 등화류',
-    className: 'dataset-label-carlight',
-    shortcut: 'C',
-  },
-  {
-    value: 'negative',
-    label: '일반/오탐',
-    className: 'dataset-label-negative',
-    shortcut: 'N',
-  },
+  { value: 'fire', label: '화재', className: 'dataset-label-fire', shortcut: 'F' },
+  { value: 'smoke', label: '연기', className: 'dataset-label-smoke', shortcut: 'S' },
+  { value: 'carlight', label: '차량 등화류', className: 'dataset-label-carlight', shortcut: 'C' },
+  { value: 'negative', label: '일반/오탐', className: 'dataset-label-negative', shortcut: 'N' },
 ]
 
 function getFrameLabel(frame: DatasetFrame): LabelName | null {
@@ -81,6 +63,7 @@ function getFrameLabel(frame: DatasetFrame): LabelName | null {
 function DatasetDetailPage() {
   const params = useParams()
   const datasetId = Number(params.id)
+  const { showToast } = useToast()
 
   const [dataset, setDataset] = useState<Dataset | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -94,6 +77,7 @@ function DatasetDetailPage() {
     if (!datasetId || Number.isNaN(datasetId)) {
       setErrorMessage('잘못된 데이터셋 주소입니다.')
       setIsLoading(false)
+      showToast('잘못된 데이터셋 주소입니다.', 'error')
       return
     }
 
@@ -105,6 +89,7 @@ function DatasetDetailPage() {
       setDataset(response.data)
     } catch {
       setErrorMessage('데이터셋 상세 정보를 불러오지 못했습니다.')
+      showToast('데이터셋 상세 정보를 불러오지 못했습니다.', 'error')
     } finally {
       setIsLoading(false)
     }
@@ -226,8 +211,10 @@ function DatasetDetailPage() {
       })
 
       await fetchDataset()
+      showToast('라벨이 저장되었습니다.', 'success')
     } catch {
       setErrorMessage('라벨 저장에 실패했습니다.')
+      showToast('라벨 저장에 실패했습니다.', 'error')
     }
   }
 
@@ -239,8 +226,10 @@ function DatasetDetailPage() {
       setErrorMessage('')
 
       await downloadDatasetZipApi(dataset.id)
+      showToast('ZIP Export 다운로드를 시작했습니다.', 'success')
     } catch {
       setErrorMessage('ZIP Export 다운로드에 실패했습니다.')
+      showToast('ZIP Export 다운로드에 실패했습니다.', 'error')
     } finally {
       setIsExporting(false)
     }
@@ -254,8 +243,10 @@ function DatasetDetailPage() {
       setErrorMessage('')
 
       await downloadDatasetYoloApi(dataset.id)
+      showToast('YOLO Export 다운로드를 시작했습니다.', 'success')
     } catch {
       setErrorMessage('YOLO Export 다운로드에 실패했습니다.')
+      showToast('YOLO Export 다운로드에 실패했습니다.', 'error')
     } finally {
       setIsExporting(false)
     }
@@ -264,9 +255,9 @@ function DatasetDetailPage() {
   if (isLoading) {
     return (
       <Page className="dataset-page">
-        <EmptyState
+        <Loading
           title="데이터셋을 불러오는 중입니다"
-          description="프레임과 라벨 정보를 확인하고 있습니다."
+          description="프레임, 라벨, 영상 정보를 확인하고 있습니다."
         />
       </Page>
     )
@@ -276,6 +267,7 @@ function DatasetDetailPage() {
     return (
       <Page className="dataset-page">
         <EmptyState
+          icon="⚠️"
           title="데이터셋을 찾을 수 없습니다"
           description={errorMessage || '요청한 데이터셋 정보를 확인할 수 없습니다.'}
           action={

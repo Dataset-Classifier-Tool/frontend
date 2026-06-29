@@ -1,14 +1,98 @@
 /*
 =========================================================
-UI Components
+Common UI System
+=========================================================
+*/
+
+/*
+=========================================================
+Page Header / Section
+=========================================================
+*/
+
+.app-page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 30px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 30px;
+    background:
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(8, 12, 20, 0.94));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.16);
+}
+
+.app-page-title-group {
+    min-width: 0;
+}
+
+.app-page-title {
+    margin: 16px 0 10px;
+    color: var(--text-primary);
+    font-size: clamp(34px, 4vw, 54px);
+    font-weight: 950;
+    line-height: 1.06;
+    letter-spacing: -0.075em;
+}
+
+.app-page-description {
+    max-width: 760px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+.app-page-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.app-section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.app-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.app-section-title {
+    margin: 0 0 8px;
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 950;
+    letter-spacing: -0.055em;
+}
+
+.app-section-description {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/*
+=========================================================
+Card
 =========================================================
 */
 
 .ui-card {
-    background: rgba(22, 27, 34, 0.86);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 26px;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(8, 12, 20, 0.95));
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
 }
 
 .ui-card-hover {
@@ -16,30 +100,37 @@ UI Components
 }
 
 .ui-card-hover:hover {
-    transform: translateY(-2px);
-    border-color: rgba(62, 207, 142, 0.24);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    border-color: rgba(62, 207, 142, 0.28);
+    box-shadow: 0 28px 62px rgba(0, 0, 0, 0.28);
 }
 
 .ui-panel {
-    padding: 22px;
-    background: rgba(22, 27, 34, 0.78);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
+    padding: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 26px;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(8, 12, 20, 0.94));
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
 }
 
+/*
+=========================================================
+Button
+=========================================================
+*/
+
 .ui-button {
-    min-height: 40px;
+    min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 0 14px;
+    padding: 0 18px;
     border: 1px solid transparent;
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    font-weight: 800;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 900;
     line-height: 1;
     cursor: pointer;
     transition: var(--transition);
@@ -51,27 +142,31 @@ UI Components
     opacity: 0.45;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 .ui-button-primary {
-    background: var(--primary-color);
-    color: #04130d;
+    border-color: rgba(62, 207, 142, 0.36);
+    background: linear-gradient(135deg, #3ecf8e, #34d399);
+    color: #03130b;
+    box-shadow: 0 12px 28px rgba(62, 207, 142, 0.18);
 }
 
 .ui-button-primary:hover:not(:disabled) {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 42px rgba(62, 207, 142, 0.28);
 }
 
 .ui-button-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--border-color);
+    border-color: rgba(148, 163, 184, 0.14);
+    background: rgba(255, 255, 255, 0.045);
     color: var(--text-primary);
 }
 
 .ui-button-secondary:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
     border-color: rgba(62, 207, 142, 0.28);
+    background: rgba(255, 255, 255, 0.075);
 }
 
 .ui-button-ghost {
@@ -85,37 +180,48 @@ UI Components
 }
 
 .ui-button-danger {
-    background: rgba(239, 68, 68, 0.12);
     border-color: rgba(239, 68, 68, 0.28);
+    background: rgba(239, 68, 68, 0.12);
     color: #fca5a5;
 }
 
 .ui-button-danger:hover:not(:disabled) {
-    background: rgba(239, 68, 68, 0.18);
+    transform: translateY(-1px);
     border-color: rgba(239, 68, 68, 0.42);
+    background: rgba(239, 68, 68, 0.18);
 }
 
 .ui-button-sm {
-    min-height: 34px;
-    padding: 0 11px;
-    border-radius: 10px;
+    min-height: 36px;
+    padding: 0 13px;
+    border-radius: 12px;
     font-size: 12px;
 }
 
 .ui-button-lg {
-    min-height: 48px;
-    padding: 0 18px;
-    border-radius: var(--radius-lg);
-    font-size: 15px;
+    min-height: 52px;
+    padding: 0 24px;
+    border-radius: 17px;
+    font-size: 14px;
 }
 
+.ui-button-full {
+    width: 100%;
+}
+
+/*
+=========================================================
+Icon Button
+=========================================================
+*/
+
 .ui-icon-button {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     display: grid;
     place-items: center;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-radius: 14px;
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary);
     cursor: pointer;
@@ -123,115 +229,194 @@ UI Components
 }
 
 .ui-icon-button:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text-primary);
-    border-color: rgba(62, 207, 142, 0.28);
+    border-color: rgba(239, 68, 68, 0.34);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
 }
+
+/*
+=========================================================
+Badge
+=========================================================
+*/
 
 .ui-badge {
     min-height: 26px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 0 9px;
-    border: 1px solid var(--border-color);
+    width: fit-content;
+    padding: 0 10px;
+    border: 1px solid rgba(148, 163, 184, 0.14);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.045);
     color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 900;
     line-height: 1;
     white-space: nowrap;
 }
 
-.ui-badge-primary {
-    background: rgba(62, 207, 142, 0.12);
+.ui-badge-primary,
+.ui-badge-success {
     border-color: rgba(62, 207, 142, 0.28);
+    background: rgba(62, 207, 142, 0.12);
     color: var(--primary-color);
 }
 
 .ui-badge-danger {
-    background: rgba(239, 68, 68, 0.12);
     border-color: rgba(239, 68, 68, 0.28);
+    background: rgba(239, 68, 68, 0.12);
     color: #fca5a5;
 }
 
 .ui-badge-warning {
-    background: rgba(245, 158, 11, 0.12);
     border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.12);
     color: #fbbf24;
 }
 
 .ui-badge-info {
-    background: rgba(59, 130, 246, 0.12);
     border-color: rgba(59, 130, 246, 0.28);
+    background: rgba(59, 130, 246, 0.12);
     color: #93c5fd;
 }
 
-.ui-divider {
-    width: 100%;
-    height: 1px;
-    background: var(--border-color);
+.ui-badge-muted {
+    border-color: rgba(148, 163, 184, 0.18);
+    background: rgba(148, 163, 184, 0.08);
+    color: #cbd5e1;
 }
 
+/*
+=========================================================
+Empty State
+=========================================================
+*/
+
 .ui-empty {
-    min-height: 260px;
-    display: grid;
-    place-items: center;
-    padding: 32px;
-    border: 1px dashed var(--border-color);
-    border-radius: var(--radius-xl);
-    background: rgba(255, 255, 255, 0.03);
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    padding: 42px 24px;
+    border: 1px dashed rgba(148, 163, 184, 0.2);
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at center, rgba(62, 207, 142, 0.06), transparent 42%),
+        rgba(255, 255, 255, 0.03);
     text-align: center;
 }
 
+.ui-empty-icon {
+    width: 76px;
+    height: 76px;
+    display: grid;
+    place-items: center;
+    border-radius: 24px;
+    background: rgba(62, 207, 142, 0.12);
+    font-size: 38px;
+    box-shadow: 0 0 32px rgba(62, 207, 142, 0.12);
+}
+
 .ui-empty-title {
-    margin: 0 0 8px;
+    margin: 0;
     color: var(--text-primary);
-    font-size: 18px;
-    font-weight: 900;
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -0.04em;
 }
 
 .ui-empty-description {
-    max-width: 440px;
-    margin: 0 auto;
+    max-width: 460px;
+    margin: 0;
     color: var(--text-secondary);
     font-size: 14px;
+    line-height: 1.75;
 }
 
+.ui-empty-action {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+/*
+=========================================================
+Stats
+=========================================================
+*/
+
 .ui-stat-card {
-    padding: 18px;
-    background: rgba(22, 27, 34, 0.78);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    position: relative;
+    overflow: hidden;
+    padding: 24px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.84), rgba(8, 12, 20, 0.94));
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
+    transition: var(--transition);
+}
+
+.ui-stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.ui-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(62, 207, 142, 0.28);
+    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.24);
+}
+
+.ui-stat-card:hover::before {
+    opacity: 1;
 }
 
 .ui-stat-label {
-    margin: 0 0 8px;
+    margin: 0 0 10px;
     color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 900;
 }
 
 .ui-stat-value {
     margin: 0;
+    overflow: hidden;
     color: var(--text-primary);
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
+    font-size: 34px;
+    font-weight: 950;
+    letter-spacing: -0.065em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ui-stat-help {
-    margin: 6px 0 0;
+    margin: 8px 0 0;
     color: var(--text-disabled);
     font-size: 12px;
+    font-weight: 700;
 }
+
+/*
+=========================================================
+Table / Toolbar / Keyboard
+=========================================================
+*/
 
 .ui-table-wrap {
     overflow: hidden;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    background: rgba(22, 27, 34, 0.74);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.76);
 }
 
 .ui-table {
@@ -242,7 +427,7 @@ UI Components
 .ui-table th,
 .ui-table td {
     padding: 14px 16px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
     text-align: left;
     vertical-align: middle;
 }
@@ -250,10 +435,10 @@ UI Components
 .ui-table th {
     color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 900;
-    text-transform: uppercase;
+    font-weight: 950;
     letter-spacing: 0.04em;
-    background: rgba(255, 255, 255, 0.03);
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.035);
 }
 
 .ui-table td {
@@ -271,9 +456,9 @@ UI Components
     justify-content: space-between;
     gap: 14px;
     padding: 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    background: rgba(22, 27, 34, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.72);
 }
 
 .ui-toolbar-left,
@@ -284,30 +469,43 @@ UI Components
 }
 
 .ui-kbd {
-    min-width: 24px;
-    height: 24px;
+    min-width: 32px;
+    height: 28px;
     display: inline-grid;
     place-items: center;
-    padding: 0 7px;
-    border: 1px solid var(--border-color);
-    border-bottom-color: rgba(255, 255, 255, 0.18);
-    border-radius: 7px;
+    padding: 0 8px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-bottom-color: rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
     background: rgba(255, 255, 255, 0.06);
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: 11px;
-    font-weight: 900;
+    font-weight: 950;
 }
 
+/*
+=========================================================
+Responsive
+=========================================================
+*/
+
 @media (max-width: 760px) {
+    .app-page-header,
+    .app-section-header,
     .ui-toolbar {
         align-items: flex-start;
         flex-direction: column;
     }
 
+    .app-page-actions,
     .ui-toolbar-left,
     .ui-toolbar-right {
         width: 100%;
         flex-wrap: wrap;
+    }
+
+    .app-page-actions .ui-button {
+        flex: 1;
     }
 
     .ui-table-wrap {
@@ -317,171 +515,100 @@ UI Components
 
 /*
 =========================================================
-Home
+Loading / Skeleton
 =========================================================
 */
 
-.home-hero {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 28px;
-    min-height: 420px;
-    padding: 42px;
-    overflow: hidden;
-}
-
-.home-hero::before {
-    content: "";
-    position: absolute;
-    inset: -120px -80px auto auto;
-    width: 360px;
-    height: 360px;
-    border-radius: 999px;
-    background: rgba(62, 207, 142, 0.16);
-    filter: blur(80px);
-    pointer-events: none;
-}
-
-.home-hero-content {
-    position: relative;
-    z-index: 1;
+.ui-loading {
+    min-height: 320px;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
+    flex-direction: column;
+    gap: 18px;
+    padding: 42px;
+    border: 1px dashed rgba(148, 163, 184, 0.18);
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at center, rgba(62, 207, 142, 0.06), transparent 42%),
+        rgba(255, 255, 255, 0.03);
+    text-align: center;
 }
 
-.home-hero-title {
-    max-width: 760px;
-    margin: 22px 0 18px;
+.ui-loading h3 {
+    margin: 0 0 8px;
     color: var(--text-primary);
-    font-size: clamp(36px, 5vw, 64px);
-    font-weight: 900;
-    line-height: 1.04;
-    letter-spacing: -0.07em;
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -0.04em;
 }
 
-.home-hero-description {
-    max-width: 660px;
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: 16px;
-    line-height: 1.8;
-}
-
-.home-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 30px;
-}
-
-.home-hero-panel {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-}
-
-.home-terminal {
-    width: 100%;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
-    background: rgba(5, 10, 8, 0.78);
-    box-shadow: var(--shadow-lg);
-}
-
-.home-terminal-header {
-    height: 42px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 16px;
-    border-bottom: 1px solid var(--border-color);
-    background: rgba(255, 255, 255, 0.04);
-}
-
-.home-terminal-header span {
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
-    background: #334155;
-}
-
-.home-terminal-body {
-    padding: 20px;
-    font-family: Consolas, Monaco, monospace;
-    font-size: 13px;
-}
-
-.home-terminal-body p {
-    margin: 0 0 12px;
-    color: var(--text-primary);
-}
-
-.home-terminal-body p:last-child {
-    margin-bottom: 0;
-}
-
-.home-terminal-muted {
-    color: var(--text-disabled);
-    margin-right: 8px;
-}
-
-.home-terminal-success {
-    color: var(--primary-color);
-    margin-right: 8px;
-}
-
-.home-feature-card {
-    padding: 24px;
-}
-
-.home-feature-icon {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    margin-bottom: 18px;
-    border-radius: 14px;
-    background: rgba(62, 207, 142, 0.12);
-    font-size: 20px;
-}
-
-.home-feature-card h3 {
-    margin: 0 0 10px;
-    color: var(--text-primary);
-    font-size: 18px;
-    font-weight: 900;
-}
-
-.home-feature-card p {
+.ui-loading p {
     margin: 0;
     color: var(--text-secondary);
     font-size: 14px;
-    line-height: 1.7;
 }
 
-@media (max-width: 1100px) {
-    .home-hero {
-        grid-template-columns: 1fr;
+.ui-spinner {
+    width: 54px;
+    height: 54px;
+    border: 4px solid rgba(255, 255, 255, 0.08);
+    border-top-color: var(--primary-color);
+    border-radius: 999px;
+    animation: ui-spin 0.9s linear infinite;
+}
+
+@keyframes ui-spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 
-@media (max-width: 760px) {
-    .home-hero {
-        padding: 28px;
-    }
-
-    .home-hero-title {
-        font-size: 36px;
-    }
+.ui-skeleton-list {
+    display: grid;
+    gap: 16px;
 }
 
-.ui-empty-action {
+.ui-skeleton-card {
     display: flex;
-    justify-content: center;
-    margin-top: 18px;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 140px;
+    padding: 22px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(8, 12, 20, 0.95));
+}
+
+.ui-skeleton-line {
+    height: 14px;
+    border-radius: 999px;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.04)
+        );
+    background-size: 220% 100%;
+    animation: ui-skeleton-loading 1.3s ease-in-out infinite;
+}
+
+.ui-skeleton-line.short {
+    width: 34%;
+}
+
+.ui-skeleton-line.medium {
+    width: 62%;
+}
+
+@keyframes ui-skeleton-loading {
+    0% {
+        background-position: 220% 0;
+    }
+
+    100% {
+        background-position: -220% 0;
+    }
 }

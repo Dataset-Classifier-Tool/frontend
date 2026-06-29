@@ -1,5 +1,5 @@
-import type { DatasetFrame } from '../../../../types/frame.ts'
-import type { LabelName } from '../../../../types/label.ts'
+import type { DatasetFrame } from '../../../../types/frame'
+import type { LabelName } from '../../../../types/label'
 
 type LabelOption = {
   value: LabelName

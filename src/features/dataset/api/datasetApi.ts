@@ -1,10 +1,11 @@
 import apiClient from '../../../common/api/axios'
 
-import type { ApiResponse } from '../../../types/api.ts'
-import type { CreateDatasetRequest, Dataset } from '../../../types/dataset.ts'
+import type { ApiResponse } from '../../../types/api'
+import type { CreateDatasetRequest, Dataset } from '../../../types/dataset'
 
 export async function getDatasetsApi() {
   const response = await apiClient.get<ApiResponse<Dataset[]>>('/api/datasets')
+
   return response.data
 }
 
