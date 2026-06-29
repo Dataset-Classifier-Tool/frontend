@@ -1,31 +1,32 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { getDatasetDetailApi } from '../../common/api/datasetApi'
+import { getDatasetDetailApi } from '../../features/dataset/api/datasetApi.ts'
 import {
   downloadDatasetYoloApi,
   downloadDatasetZipApi,
-} from '../../common/api/exportApi'
-import { createLabelApi, deleteLabelApi } from '../../common/api/labelApi'
+} from '../../features/dataset/api/exportApi.ts'
+import { createLabelApi, deleteLabelApi } from '../../features/dataset/api/labelApi.ts'
 import {
   EmptyState,
   Page,
   PageHeader,
   StatCard,
   StatsGrid,
-} from '../../common/components/ui'
+} from '../../common/ui'
+import {
+  AutoLabelPanel,
+  DatasetInfoPanel,
+  ExportPanel,
+  FrameGrid,
+  FrameModal,
+  FrameToolbar,
+  LabelStatsPanel,
+  PaginationBar,
+} from '../../features/dataset'
 import type { Dataset } from '../../types/dataset'
 import type { DatasetFrame } from '../../types/frame'
 import type { LabelName } from '../../types/label'
-
-import AutoLabelPanel from './components/AutoLabelPanel'
-import DatasetInfoPanel from './components/DatasetInfoPanel'
-import ExportPanel from './components/ExportPanel'
-import FrameGrid from './components/FrameGrid'
-import FrameModal from './components/FrameModal'
-import FrameToolbar from './components/FrameToolbar'
-import LabelStatsPanel from './components/LabelStatsPanel'
-import PaginationBar from './components/PaginationBar'
 
 type LabelFilter = LabelName | 'all' | 'unlabeled'
 

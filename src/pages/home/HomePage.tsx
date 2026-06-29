@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { Page, StatCard, StatsGrid } from '../../common/components/ui'
+import { Page, StatCard, StatsGrid } from '../../common/ui'
 
 function HomePage() {
   return (

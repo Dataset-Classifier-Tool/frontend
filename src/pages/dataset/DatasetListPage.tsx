@@ -8,7 +8,7 @@ import {
   PageHeader,
   StatCard,
   StatsGrid,
-} from '../../common/components/ui'
+} from '../../common/ui'
 import { useDatasetStore } from '../../stores/datasetStore'
 import type { Dataset } from '../../types/dataset'
 

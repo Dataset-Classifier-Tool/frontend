@@ -4,14 +4,14 @@ import {
   getAdminUsersApi,
   updateUserActiveApi,
   updateUserMembershipApi,
-} from '../../common/api/adminApi'
+} from '../../features/admin'
 import {
   EmptyState,
   Page,
   PageHeader,
   StatCard,
   StatsGrid,
-} from '../../common/components/ui'
+} from '../../common/ui'
 import type { MembershipType } from '../../types/auth'
 import type { AdminUser } from '../../types/user'
 

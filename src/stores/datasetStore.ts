@@ -4,7 +4,7 @@ import {
   createDatasetApi,
   deleteDatasetApi,
   getDatasetsApi,
-} from '../common/api/datasetApi'
+} from '../features/dataset/api/datasetApi.ts'
 
 import type { CreateDatasetRequest, Dataset } from '../types/dataset'
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { Page, PageHeader } from '../../common/components/ui'
+import { Page, PageHeader } from '../../common/ui'
 
 type Plan = {
   name: string

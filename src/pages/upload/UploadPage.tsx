@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { getDatasetsApi } from '../../common/api/datasetApi'
-import { uploadVideoApi } from '../../common/api/uploadApi'
+import { getDatasetsApi } from '../../features/dataset/api/datasetApi.ts'
+import { uploadVideoApi } from '../../features/upload/api/uploadApi.ts'
 import {
   Page,
   PageHeader,
   StatCard,
   StatsGrid,
-} from '../../common/components/ui'
+} from '../../common/ui'
 import type { Dataset } from '../../types/dataset'
 
-import UploadDropZone from './components/UploadDropZone'
-import UploadFlowPanel from './components/UploadFlowPanel'
-import UploadSettingsGrid from './components/UploadSettingsGrid'
-import UploadSummaryPanel from './components/UploadSummaryPanel'
+import {
+  UploadDropZone,
+  UploadFlowPanel,
+  UploadSettingsGrid,
+  UploadSummaryPanel,
+} from '../../features/upload'
 
 const ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'avi', 'mov', 'mkv', 'webm']
 const MAX_FILE_SIZE_MB = 500

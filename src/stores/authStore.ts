@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { loginApi, meApi, registerApi } from '../common/api/authApi'
+import { loginApi, meApi, registerApi } from '../features/auth/api/authApi.ts'
 import type { LoginRequest, RegisterRequest, User } from '../types/auth'
 
 interface AuthState {

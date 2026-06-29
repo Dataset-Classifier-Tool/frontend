@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import AppLayout from '../common/components/layout/AppLayout'
-import ProtectedRoute from '../common/components/ProtectedRoute'
+import AppLayout from '../common/layout/AppLayout'
+import ProtectedRoute from '../common/shared/ProtectedRoute.tsx'
 
 import HomePage from '../pages/home/HomePage'
 import LoginPage from '../pages/auth/LoginPage'
