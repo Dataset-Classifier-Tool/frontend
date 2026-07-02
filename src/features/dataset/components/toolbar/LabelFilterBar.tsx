@@ -1,52 +1,114 @@
 import type { LabelName } from '../../../../types/label'
 
-export type FrameFilter = 'all' | 'unlabeled' | LabelName
+type LabelFilter =
+  | LabelName
+  | 'all'
+  | 'unlabeled'
+  | 'no_bbox'
+
+type LabelOption = {
+  value: LabelName
+  label: string
+  className: string
+  shortcut: string
+}
 
 type LabelFilterBarProps = {
-  filter: FrameFilter
-  allFrameCount: number
-  labelOptions: LabelName[]
-  labelText: Record<LabelName, string>
-  labelStats: Record<LabelName | 'total' | 'unlabeled', number>
-  onChangeFilter: (filter: FrameFilter) => void
+  selectedLabel: LabelFilter
+  labelOptions: LabelOption[]
+  onChangeLabel: (label: LabelFilter) => void
 }
 
 function LabelFilterBar({
-  filter,
-  allFrameCount,
+  selectedLabel,
   labelOptions,
-  labelText,
-  labelStats,
-  onChangeFilter,
+  onChangeLabel,
 }: LabelFilterBarProps) {
   return (
     <div className="label-filter-bar">
+
       <button
         type="button"
-        className={filter === 'all' ? 'filter-button active' : 'filter-button'}
-        onClick={() => onChangeFilter('all')}
+        className={selectedLabel === 'all' ? 'active' : ''}
+        onClick={() => onChangeLabel('all')}
       >
-        전체 {allFrameCount}
+        <span>ALL</span>
+        전체
       </button>
 
       <button
         type="button"
-        className={filter === 'unlabeled' ? 'filter-button active' : 'filter-button'}
-        onClick={() => onChangeFilter('unlabeled')}
+        className={
+          selectedLabel === 'unlabeled'
+            ? 'active'
+            : ''
+        }
+        onClick={() =>
+          onChangeLabel(
+            'unlabeled',
+          )
+        }
       >
-        미분류 {labelStats.unlabeled}
+        <span>?</span>
+        미분류
       </button>
 
-      {labelOptions.map((labelName) => (
+      <button
+        type="button"
+        className={
+          selectedLabel === 'no_bbox'
+            ? 'active'
+            : ''
+        }
+        onClick={() =>
+          onChangeLabel(
+            'no_bbox',
+          )
+        }
+      >
+        <span>□</span>
+        박스 없음
+      </button>
+
+      {labelOptions.map((option) => (
+
         <button
-          key={labelName}
+          key={option.value}
           type="button"
-          className={filter === labelName ? 'filter-button active' : 'filter-button'}
-          onClick={() => onChangeFilter(labelName)}
+          className={`
+
+          ${
+            selectedLabel ===
+            option.value
+
+              ? 'active'
+
+              : ''
+
+          }
+
+          ${option.className}
+
+          `}
+          onClick={() =>
+            onChangeLabel(
+              option.value,
+            )
+          }
         >
-          {labelText[labelName]} {labelStats[labelName]}
+
+          <span>
+
+            {option.shortcut}
+
+          </span>
+
+          {option.label}
+
         </button>
+
       ))}
+
     </div>
   )
 }

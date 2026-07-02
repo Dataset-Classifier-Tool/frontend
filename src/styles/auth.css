@@ -7,9 +7,193 @@ Auth Pages
 .auth-page {
     min-height: calc(100vh - var(--header-height) - 68px);
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+    place-items: center;
+}
+
+.auth-shell {
+    width: min(1180px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 460px;
     gap: 24px;
     align-items: stretch;
+}
+
+.auth-visual,
+.auth-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 34px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background:
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.14), transparent 34%),
+        radial-gradient(circle at right, rgba(59, 130, 246, 0.1), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(8, 12, 20, 0.96));
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.22);
+}
+
+.auth-visual {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 620px;
+    padding: 46px;
+}
+
+.auth-card {
+    padding: 34px;
+}
+
+.auth-visual::before,
+.auth-card::before {
+    content: "";
+    position: absolute;
+    right: -140px;
+    top: -160px;
+    width: 380px;
+    height: 380px;
+    border-radius: 999px;
+    background: rgba(62, 207, 142, 0.16);
+    filter: blur(90px);
+    pointer-events: none;
+}
+
+.auth-visual > *,
+.auth-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.auth-visual h1 {
+    max-width: 720px;
+    margin: 22px 0 16px;
+    color: var(--text-primary);
+    font-size: clamp(38px, 5vw, 64px);
+    font-weight: 950;
+    line-height: 1.05;
+    letter-spacing: -0.075em;
+}
+
+.auth-visual p {
+    max-width: 620px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.85;
+}
+
+.auth-visual-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 34px;
+}
+
+.auth-visual-grid div {
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.auth-visual-grid strong {
+    color: var(--primary-color);
+    font-size: 15px;
+    font-weight: 950;
+}
+
+.auth-visual-grid span {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.auth-card-head {
+    margin-bottom: 24px;
+}
+
+.auth-card-head h2 {
+    margin: 16px 0 8px;
+    color: var(--text-primary);
+    font-size: 34px;
+    font-weight: 950;
+    letter-spacing: -0.06em;
+}
+
+.auth-card-head p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.auth-alert {
+    margin-bottom: 18px;
+    padding: 13px 14px;
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    border-radius: 16px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.auth-submit {
+    width: 100%;
+}
+
+.auth-divider {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin: 24px 0;
+}
+
+.auth-divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(148, 163, 184, 0.12);
+}
+
+.auth-divider span {
+    position: relative;
+    z-index: 1;
+    padding: 0 12px;
+    background: rgba(8, 12, 20, 0.96);
+    color: var(--text-disabled);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.auth-social-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.auth-social-grid .ui-button {
+    width: 100%;
+}
+
+.auth-switch {
+    margin: 24px 0 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.auth-switch a {
+    color: var(--primary-color);
+    font-weight: 950;
 }
 
 /*
@@ -263,29 +447,24 @@ Responsive
 =========================================================
 */
 
-@media (max-width: 1180px) {
-    .auth-page {
+@media (max-width: 1100px) {
+    .auth-shell {
         grid-template-columns: 1fr;
     }
 
-    .auth-brand-panel {
-        min-height: 440px;
+    .auth-visual {
+        min-height: auto;
     }
 }
 
 @media (max-width: 760px) {
-    .auth-brand-panel,
+    .auth-visual,
     .auth-card {
-        padding: 24px;
-        border-radius: 26px;
+        padding: 26px;
     }
 
-    .auth-brand-content h1 {
-        font-size: 40px;
-    }
-
-    .ui-form-row,
-    .auth-flow-list {
+    .auth-visual-grid,
+    .auth-social-grid {
         grid-template-columns: 1fr;
     }
 }

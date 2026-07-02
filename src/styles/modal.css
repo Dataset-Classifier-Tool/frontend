@@ -47,6 +47,13 @@ Frame Modal
     background: rgba(255, 255, 255, 0.03);
 }
 
+.frame-modal-header-badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .frame-modal-header h2 {
     margin: 10px 0 4px;
     color: var(--text-primary);
@@ -64,11 +71,12 @@ Frame Modal
 .frame-modal-body {
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 1fr) 380px;
     overflow: hidden;
 }
 
 .frame-modal-viewer {
+    position: relative;
     min-width: 0;
     min-height: 0;
     display: grid;
@@ -85,6 +93,28 @@ Frame Modal
     object-fit: contain;
     border-radius: 22px;
     box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42);
+}
+
+.frame-modal-viewer-hint {
+    position: absolute;
+    left: 34px;
+    bottom: 34px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 999px;
+    background: rgba(2, 6, 23, 0.7);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.frame-modal-viewer-hint strong {
+    margin-left: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 900;
 }
 
 .frame-modal-panel {
@@ -115,7 +145,7 @@ Frame Modal
 }
 
 .frame-modal-card .ui-badge + h3 {
-    margin-top: 16px;
+    margin-top: 12px;
 }
 
 .frame-modal-card p {
@@ -125,6 +155,89 @@ Frame Modal
     line-height: 1.7;
 }
 
+.frame-modal-card-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.frame-modal-card-title-row h3 {
+    margin-bottom: 0;
+}
+
+.frame-modal-help-text {
+    color: var(--text-disabled);
+    font-size: 11px;
+    font-weight: 900;
+}
+
+/*
+=========================================================
+Current Label
+=========================================================
+*/
+
+.frame-current-label {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.frame-current-label-icon {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.055);
+    color: var(--text-secondary);
+    font-size: 20px;
+    font-weight: 950;
+}
+
+.frame-current-label-icon.dataset-label-fire,
+.frame-modal-label-button.dataset-label-fire.active {
+    border-color: rgba(239, 68, 68, 0.38);
+    background: rgba(239, 68, 68, 0.14);
+    color: #fca5a5;
+}
+
+.frame-current-label-icon.dataset-label-smoke,
+.frame-modal-label-button.dataset-label-smoke.active {
+    border-color: rgba(139, 92, 246, 0.38);
+    background: rgba(139, 92, 246, 0.14);
+    color: #c4b5fd;
+}
+
+.frame-current-label-icon.dataset-label-carlight,
+.frame-modal-label-button.dataset-label-carlight.active {
+    border-color: rgba(245, 158, 11, 0.38);
+    background: rgba(245, 158, 11, 0.14);
+    color: #fbbf24;
+}
+
+.frame-current-label-icon.dataset-label-negative,
+.frame-modal-label-button.dataset-label-negative.active {
+    border-color: rgba(148, 163, 184, 0.3);
+    background: rgba(148, 163, 184, 0.12);
+    color: #cbd5e1;
+}
+
+.frame-current-label h3 {
+    margin: 0 0 6px;
+}
+
+/*
+=========================================================
+Label Buttons
+=========================================================
+*/
+
 .frame-modal-label-list {
     display: flex;
     flex-direction: column;
@@ -132,70 +245,87 @@ Frame Modal
 }
 
 .frame-modal-label-button {
-    min-height: 46px;
+    min-height: 58px;
     width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
     align-items: center;
-    gap: 10px;
-    padding: 0 13px;
+    gap: 12px;
+    padding: 11px 13px;
     border: 1px solid rgba(148, 163, 184, 0.14);
-    border-radius: 14px;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.04);
     color: var(--text-secondary);
-    font-size: 13px;
-    font-weight: 900;
+    text-align: left;
     cursor: pointer;
     transition: var(--transition);
 }
 
-.frame-modal-label-button span {
-    width: 25px;
-    height: 25px;
+.frame-modal-label-button > span {
+    width: 34px;
+    height: 34px;
     display: inline-grid;
     place-items: center;
-    border-radius: 999px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.08);
     color: inherit;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 950;
+}
+
+.frame-modal-label-button strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 950;
+}
+
+.frame-modal-label-button small {
+    display: block;
+    color: var(--text-disabled);
+    font-size: 11px;
+    font-weight: 800;
 }
 
 .frame-modal-label-button:hover {
     transform: translateY(-1px);
     border-color: rgba(62, 207, 142, 0.32);
     background: rgba(255, 255, 255, 0.07);
-    color: var(--text-primary);
 }
 
 .frame-modal-label-button.active {
-    border-color: rgba(62, 207, 142, 0.4);
-    background: rgba(62, 207, 142, 0.14);
-    color: var(--primary-color);
+    transform: translateY(-1px);
 }
 
-.frame-modal-shortcuts {
-    display: flex;
-    flex-direction: column;
+/*
+=========================================================
+Shortcut
+=========================================================
+*/
+
+.frame-modal-shortcut-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
 }
 
-.frame-modal-shortcuts div {
+.frame-shortcut-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    gap: 10px;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.035);
 }
 
-.frame-modal-shortcuts div:last-child {
-    border-bottom: 0;
-}
-
-.frame-modal-shortcuts strong {
+.frame-shortcut-item strong {
     color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 900;
 }
 
 .ui-kbd {
@@ -205,12 +335,55 @@ Frame Modal
     place-items: center;
     padding: 0 8px;
     border: 1px solid rgba(148, 163, 184, 0.18);
+    border-bottom-color: rgba(255, 255, 255, 0.24);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.06);
     color: var(--text-primary);
     font-size: 11px;
     font-weight: 950;
 }
+
+/*
+=========================================================
+Navigation
+=========================================================
+*/
+
+.frame-navigation-status {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 16px 0;
+}
+
+.frame-navigation-status strong {
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 950;
+    letter-spacing: -0.05em;
+}
+
+.frame-navigation-status span {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.frame-modal-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.frame-modal-actions .ui-button {
+    width: 100%;
+}
+
+/*
+=========================================================
+Icon Button
+=========================================================
+*/
 
 .ui-icon-button {
     width: 42px;
@@ -229,17 +402,6 @@ Frame Modal
     border-color: rgba(239, 68, 68, 0.34);
     background: rgba(239, 68, 68, 0.12);
     color: #fca5a5;
-}
-
-.frame-modal-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: auto;
-}
-
-.frame-modal-actions .ui-button {
-    width: 100%;
 }
 
 /*
@@ -262,7 +424,7 @@ Responsive
     }
 
     .frame-modal-panel {
-        max-height: 360px;
+        max-height: 380px;
         border-left: 0;
         border-top: 1px solid rgba(148, 163, 184, 0.14);
     }
@@ -288,7 +450,401 @@ Responsive
         padding: 14px;
     }
 
+    .frame-modal-viewer-hint {
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+        justify-content: center;
+        flex-wrap: wrap;
+        border-radius: 18px;
+    }
+
     .frame-modal-panel {
         padding: 14px;
     }
+
+    .frame-modal-shortcut-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .frame-current-label {
+        grid-template-columns: 1fr;
+    }
+
+    .frame-modal-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================
+   Bounding Box
+========================================== */
+
+.bbox-stage {
+  width: 100%;
+}
+
+.bbox-canvas {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border-radius: 28px;
+  background: #020617;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.bbox-canvas img {
+  display: block;
+  width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.bbox-box {
+  position: absolute;
+  z-index: 5;
+  border: 2px solid rgba(59, 130, 246, 0.95);
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.08);
+  cursor: pointer;
+}
+
+.bbox-box span {
+  position: absolute;
+  top: -28px;
+  left: -2px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.bbox-box.active {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+}
+
+.bbox-box-preview {
+  pointer-events: none;
+  border-style: dashed;
+}
+
+.bbox-box-fire {
+  border-color: rgba(239, 68, 68, 0.95);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.bbox-box-smoke {
+  border-color: rgba(100, 116, 139, 0.95);
+  background: rgba(100, 116, 139, 0.14);
+}
+
+.bbox-box-carlight {
+  border-color: rgba(245, 158, 11, 0.95);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.bbox-box-negative {
+  border-color: rgba(34, 197, 94, 0.95);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.bbox-panel {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+}
+
+.bbox-panel-header,
+.bbox-list-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bbox-panel-header strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.bbox-panel-eyebrow {
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.bbox-count {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.bbox-section-title {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.bbox-label-section,
+.bbox-list-section {
+  display: grid;
+  gap: 12px;
+}
+
+.bbox-label-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bbox-label-button {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #334155;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bbox-label-button strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.bbox-label-button small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.bbox-label-button.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.14);
+}
+
+.bbox-delete-button {
+  border: 0;
+  background: transparent;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.bbox-empty {
+  padding: 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+.bbox-empty strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.bbox-empty p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.bbox-list {
+  display: grid;
+  gap: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.bbox-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bbox-list-item.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.bbox-list-item strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.bbox-list-item small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.bbox-list-item > span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.bbox-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.bbox-status strong {
+  color: #dc2626;
+}
+
+.bbox-resize-handle {
+  position: absolute;
+  z-index: 30;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #2563eb;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.bbox-resize-handle-se {
+  right: -8px;
+  bottom: -8px;
+  cursor: nwse-resize;
+}
+
+.bbox-box.active {
+  z-index: 20;
+}
+
+.bbox-box.active .bbox-resize-handle {
+  display: block;
+}
+
+/* ==========================================
+   Bounding Box - Selected Inspector
+========================================== */
+
+.bbox-selected-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.bbox-selected-card span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bbox-selected-card strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.bbox-selected-card small {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* ==========================================
+   Bounding Box - Resize Handle
+========================================== */
+
+.bbox-resize-handle {
+  position: absolute;
+  z-index: 30;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.bbox-resize-handle-se {
+  right: -8px;
+  bottom: -8px;
+  cursor: nwse-resize;
+}
+
+.bbox-box.active {
+  z-index: 20;
+}
+
+.bbox-box.active .bbox-resize-handle {
+  display: block;
+}
+
+.bbox-box span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bbox-box span small {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bbox-box span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bbox-box span small {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 800;
 }

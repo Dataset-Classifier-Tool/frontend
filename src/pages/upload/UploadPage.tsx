@@ -189,7 +189,7 @@ function UploadPage() {
       const response = await uploadVideoApi(Number(datasetId), formData)
 
       const autoLabelText = response.data.auto_label_result
-        ? ` / 자동 라벨링 ${response.data.auto_label_result.labeled_frames}개 완료`
+        ? ` / 자동 라벨링 ${response.data.auto_label_result.created_box_count}개 완료`
         : ''
 
       const widthText = response.data.target_width

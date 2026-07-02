@@ -13,6 +13,45 @@ type LabelStatsPanelProps = {
   progress: number
 }
 
+const LABEL_STAT_ITEMS = [
+  {
+    key: 'fire',
+    label: '화재',
+    icon: '🔥',
+    className: 'dataset-label-fire',
+  },
+  {
+    key: 'smoke',
+    label: '연기',
+    icon: '🌫️',
+    className: 'dataset-label-smoke',
+  },
+  {
+    key: 'carlight',
+    label: '차량 등화류',
+    icon: '💡',
+    className: 'dataset-label-carlight',
+  },
+  {
+    key: 'negative',
+    label: '일반 / 오탐',
+    icon: '✅',
+    className: 'dataset-label-negative',
+  },
+  {
+    key: 'unlabeled',
+    label: '미분류',
+    icon: '🏷️',
+    className: 'dataset-label-unlabeled',
+  },
+] as const
+
+function getPercent(value: number, total: number) {
+  if (total === 0) return 0
+
+  return Math.round((value / total) * 100)
+}
+
 function LabelStatsPanel({
   stats,
   totalCount,
@@ -20,52 +59,71 @@ function LabelStatsPanel({
   progress,
 }: LabelStatsPanelProps) {
   return (
-    <>
-      <article className="ui-card dataset-side-card dataset-progress-card">
-        <span className="ui-badge ui-badge-primary">작업 진행률</span>
+    <article className="dataset-side-panel dataset-label-stats-panel ui-card">
+      <div className="dataset-side-panel-head">
+        <div>
+          <span className="ui-badge ui-badge-primary">Label Stats</span>
+          <h2>라벨링 현황</h2>
+          <p>현재 데이터셋의 라벨 분포와 미분류 상태를 확인합니다.</p>
+        </div>
+      </div>
 
-        <h2>{progress}%</h2>
-
-        <div className="dataset-progress-line">
-          <i style={{ width: `${progress}%` }} />
+      <div className="dataset-label-progress-card">
+        <div
+          className="dataset-label-progress-ring"
+          style={{
+            background: `conic-gradient(var(--primary-color) ${
+              progress * 3.6
+            }deg, rgba(255, 255, 255, 0.08) 0deg)`,
+          }}
+        >
+          <div>
+            <strong>{progress}%</strong>
+            <span>완료율</span>
+          </div>
         </div>
 
-        <p>
-          전체 {totalCount}개 중 {labeledCount}개 프레임이 라벨링되었습니다.
-        </p>
-      </article>
-
-      <article className="ui-card dataset-side-card">
-        <span className="ui-badge ui-badge-primary">라벨 통계</span>
-
-        <div className="dataset-label-stats">
+        <div className="dataset-label-progress-meta">
           <div>
-            <span>화재</span>
-            <strong>{stats.fire}</strong>
+            <span>전체</span>
+            <strong>{totalCount}</strong>
           </div>
 
           <div>
-            <span>연기</span>
-            <strong>{stats.smoke}</strong>
-          </div>
-
-          <div>
-            <span>차량 등화류</span>
-            <strong>{stats.carlight}</strong>
-          </div>
-
-          <div>
-            <span>일반/오탐</span>
-            <strong>{stats.negative}</strong>
-          </div>
-
-          <div>
-            <span>미분류</span>
-            <strong>{stats.unlabeled}</strong>
+            <span>완료</span>
+            <strong>{labeledCount}</strong>
           </div>
         </div>
-      </article>
-    </>
+      </div>
+
+      <div className="dataset-label-stat-list">
+        {LABEL_STAT_ITEMS.map((item) => {
+          const value = stats[item.key]
+          const percent = getPercent(value, totalCount)
+
+          return (
+            <div className="dataset-label-stat-item" key={item.key}>
+              <div className={`dataset-label-stat-icon ${item.className}`}>
+                {item.icon}
+              </div>
+
+              <div className="dataset-label-stat-content">
+                <div className="dataset-label-stat-title">
+                  <strong>{item.label}</strong>
+                  <span>{percent}%</span>
+                </div>
+
+                <div className="dataset-label-stat-bar">
+                  <i style={{ width: `${percent}%` }} />
+                </div>
+              </div>
+
+              <em>{value}</em>
+            </div>
+          )
+        })}
+      </div>
+    </article>
   )
 }
 

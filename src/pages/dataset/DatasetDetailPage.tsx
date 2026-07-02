@@ -1,12 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { getDatasetDetailApi } from '../../features/dataset/api/datasetApi'
-import {
-  downloadDatasetYoloApi,
-  downloadDatasetZipApi,
-} from '../../features/dataset/api/exportApi'
-import { createLabelApi, deleteLabelApi } from '../../features/dataset/api/labelApi'
 import {
   EmptyState,
   Loading,
@@ -16,6 +10,16 @@ import {
   StatsGrid,
   useToast,
 } from '../../common/ui'
+import { createBoundingBoxApi } from '../../features/dataset/api/boundingBoxApi'
+import { runAutoLabelApi } from '../../features/dataset/api/classifierApi'
+import { getDatasetDetailApi } from '../../features/dataset/api/datasetApi'
+import {
+  downloadDatasetYoloApi,
+  downloadDatasetZipApi,
+  getYoloExportMetaApi,
+  type YoloExportMeta,
+} from '../../features/dataset/api/exportApi'
+import { createLabelApi, deleteLabelApi } from '../../features/dataset/api/labelApi'
 import {
   AutoLabelPanel,
   DatasetInfoPanel,
@@ -30,7 +34,7 @@ import type { Dataset } from '../../types/dataset'
 import type { DatasetFrame } from '../../types/frame'
 import type { LabelName } from '../../types/label'
 
-type LabelFilter = LabelName | 'all' | 'unlabeled'
+type LabelFilter = LabelName | 'all' | 'unlabeled' | 'no_bbox'
 
 type LabelOption = {
   value: LabelName
@@ -52,12 +56,44 @@ const PAGE_SIZE = 24
 const LABEL_OPTIONS: LabelOption[] = [
   { value: 'fire', label: '화재', className: 'dataset-label-fire', shortcut: 'F' },
   { value: 'smoke', label: '연기', className: 'dataset-label-smoke', shortcut: 'S' },
-  { value: 'carlight', label: '차량 등화류', className: 'dataset-label-carlight', shortcut: 'C' },
-  { value: 'negative', label: '일반/오탐', className: 'dataset-label-negative', shortcut: 'N' },
+  {
+    value: 'carlight',
+    label: '차량 등화류',
+    className: 'dataset-label-carlight',
+    shortcut: 'C',
+  },
+  {
+    value: 'negative',
+    label: '일반/오탐',
+    className: 'dataset-label-negative',
+    shortcut: 'N',
+  },
 ]
 
 function getFrameLabel(frame: DatasetFrame): LabelName | null {
   return frame.labels?.[0]?.label_name ?? null
+}
+
+function getFrameBoxCount(frame: DatasetFrame) {
+  return frame.bounding_boxes?.length ?? 0
+}
+
+function getMockLabel(index: number): LabelName {
+  const labels: LabelName[] = ['fire', 'smoke', 'carlight', 'negative']
+  return labels[index % labels.length]
+}
+
+function getMockConfidence(index: number) {
+  return Math.round((0.72 + (index % 5) * 0.045) * 100) / 100
+}
+
+function createMockBox(index: number) {
+  return {
+    x: 0.08 + (index % 4) * 0.08,
+    y: 0.12 + (index % 3) * 0.07,
+    width: 0.28,
+    height: 0.22,
+  }
 }
 
 function DatasetDetailPage() {
@@ -68,12 +104,16 @@ function DatasetDetailPage() {
   const [dataset, setDataset] = useState<Dataset | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
+  const [isLoadingYoloMeta, setIsLoadingYoloMeta] = useState(false)
+  const [yoloMeta, setYoloMeta] = useState<YoloExportMeta | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [selectedLabel, setSelectedLabel] = useState<LabelFilter>('all')
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [isRunningMockAutoLabel, setIsRunningMockAutoLabel] = useState(false)
+  const [mockBoxCount, setMockBoxCount] = useState(0)
 
-  const fetchDataset = async () => {
+  const fetchDataset = useCallback(async () => {
     if (!datasetId || Number.isNaN(datasetId)) {
       setErrorMessage('잘못된 데이터셋 주소입니다.')
       setIsLoading(false)
@@ -84,7 +124,6 @@ function DatasetDetailPage() {
     try {
       setIsLoading(true)
       setErrorMessage('')
-
       const response = await getDatasetDetailApi(datasetId)
       setDataset(response.data)
     } catch {
@@ -93,23 +132,91 @@ function DatasetDetailPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [datasetId, showToast])
+
+  const fetchYoloMeta = useCallback(async () => {
+    if (!datasetId || Number.isNaN(datasetId)) {
+      setYoloMeta(null)
+      return
+    }
+
+    try {
+      setIsLoadingYoloMeta(true)
+      const response = await getYoloExportMetaApi(datasetId)
+      setYoloMeta(response.data)
+    } catch {
+      setYoloMeta(null)
+    } finally {
+      setIsLoadingYoloMeta(false)
+    }
+  }, [datasetId])
 
   useEffect(() => {
     fetchDataset()
-  }, [datasetId])
+  }, [fetchDataset])
+
+  useEffect(() => {
+    fetchYoloMeta()
+  }, [fetchYoloMeta])
 
   const frames = useMemo(() => {
     if (!dataset?.videos) return []
-
     return dataset.videos.flatMap((video) => video.frames ?? [])
   }, [dataset])
+
+  const labelStats = useMemo<LabelStats>(() => {
+    const stats: LabelStats = {
+      fire: 0,
+      smoke: 0,
+      carlight: 0,
+      negative: 0,
+      unlabeled: 0,
+    }
+
+    frames.forEach((frame) => {
+      const label = getFrameLabel(frame)
+
+      if (!label) {
+        stats.unlabeled += 1
+        return
+      }
+
+      if (
+        label === 'fire' ||
+        label === 'smoke' ||
+        label === 'carlight' ||
+        label === 'negative'
+      ) {
+        stats[label] += 1
+      } else {
+        stats.unlabeled += 1
+      }
+    })
+
+    return stats
+  }, [frames])
+
+  const noBoxCount = useMemo(() => {
+    return frames.filter((frame) => getFrameBoxCount(frame) === 0).length
+  }, [frames])
+
+  const boxedFrameCount = frames.length - noBoxCount
+  const bboxProgress =
+    frames.length === 0 ? 0 : Math.round((boxedFrameCount / frames.length) * 100)
+
+  const labeledCount = frames.length - labelStats.unlabeled
+  const progress =
+    frames.length === 0 ? 0 : Math.round((labeledCount / frames.length) * 100)
 
   const filteredFrames = useMemo(() => {
     if (selectedLabel === 'all') return frames
 
     if (selectedLabel === 'unlabeled') {
       return frames.filter((frame) => !getFrameLabel(frame))
+    }
+
+    if (selectedLabel === 'no_bbox') {
+      return frames.filter((frame) => getFrameBoxCount(frame) === 0)
     }
 
     return frames.filter((frame) => getFrameLabel(frame) === selectedLabel)
@@ -138,52 +245,20 @@ function DatasetDetailPage() {
     }
   }, [currentPage, totalPages])
 
-  const labelStats = useMemo<LabelStats>(() => {
-    const stats: LabelStats = {
-      fire: 0,
-      smoke: 0,
-      carlight: 0,
-      negative: 0,
-      unlabeled: 0,
-    }
-
-    frames.forEach((frame) => {
-      const label = getFrameLabel(frame)
-
-      if (!label) {
-        stats.unlabeled += 1
-        return
-      }
-
-      if (label === 'fire') stats.fire += 1
-      if (label === 'smoke') stats.smoke += 1
-      if (label === 'carlight') stats.carlight += 1
-      if (label === 'negative') stats.negative += 1
-    })
-
-    return stats
-  }, [frames])
-
-  const labeledCount = frames.length - labelStats.unlabeled
-  const progress =
-    frames.length === 0 ? 0 : Math.round((labeledCount / frames.length) * 100)
-
   const handleOpenFrame = (frameIndex: number) => {
     setSelectedFrameIndex(frameIndex)
   }
 
   const handleCloseFrame = () => {
     setSelectedFrameIndex(null)
+    fetchDataset()
+    fetchYoloMeta()
   }
 
   const handleMoveFrame = (direction: 'prev' | 'next') => {
     setSelectedFrameIndex((prevIndex) => {
       if (prevIndex === null) return prevIndex
-
-      if (direction === 'prev') {
-        return Math.max(0, prevIndex - 1)
-      }
-
+      if (direction === 'prev') return Math.max(0, prevIndex - 1)
       return Math.min(pagedFrames.length - 1, prevIndex + 1)
     })
   }
@@ -224,7 +299,6 @@ function DatasetDetailPage() {
     try {
       setIsExporting(true)
       setErrorMessage('')
-
       await downloadDatasetZipApi(dataset.id)
       showToast('ZIP Export 다운로드를 시작했습니다.', 'success')
     } catch {
@@ -241,7 +315,6 @@ function DatasetDetailPage() {
     try {
       setIsExporting(true)
       setErrorMessage('')
-
       await downloadDatasetYoloApi(dataset.id)
       showToast('YOLO Export 다운로드를 시작했습니다.', 'success')
     } catch {
@@ -249,6 +322,81 @@ function DatasetDetailPage() {
       showToast('YOLO Export 다운로드에 실패했습니다.', 'error')
     } finally {
       setIsExporting(false)
+    }
+  }
+
+  const handleRefreshYoloMeta = async () => {
+    await fetchYoloMeta()
+    showToast('YOLO Export 상태를 새로고침했습니다.', 'success')
+  }
+
+  const createMockBoxesFallback = async () => {
+    const targetFrames = frames
+      .filter((frame) => getFrameBoxCount(frame) === 0)
+      .slice(0, 12)
+
+    if (targetFrames.length === 0) return 0
+
+    await Promise.all(
+      targetFrames.map((frame, index) => {
+        const mockBox = createMockBox(index)
+
+        return createBoundingBoxApi({
+          frame_id: frame.id,
+          label_id: null,
+          label_name: getMockLabel(index),
+          x: mockBox.x,
+          y: mockBox.y,
+          width: mockBox.width,
+          height: mockBox.height,
+          source: 'mock',
+          confidence: getMockConfidence(index),
+          is_verified: false,
+        })
+      }),
+    )
+
+    return targetFrames.length
+  }
+
+  const handleRunMockAutoLabel = async () => {
+    if (!dataset) return
+
+    try {
+      setIsRunningMockAutoLabel(true)
+      setErrorMessage('')
+
+      let createdBoxCount = 0
+
+      try {
+        const response = await runAutoLabelApi({
+          target: 'dataset',
+          dataset_id: dataset.id,
+          mode: 'mock',
+          confidence_threshold: 0.5,
+        })
+
+        createdBoxCount = response.data.created_box_count
+      } catch {
+        createdBoxCount = await createMockBoxesFallback()
+      }
+
+      if (createdBoxCount === 0) {
+        showToast('Mock Auto Label을 적용할 프레임이 없습니다.', 'info')
+        return
+      }
+
+      setMockBoxCount((prevCount) => prevCount + createdBoxCount)
+
+      await fetchDataset()
+      await fetchYoloMeta()
+
+      showToast(`Mock Auto Label 박스 ${createdBoxCount}개가 생성되었습니다.`, 'success')
+    } catch {
+      setErrorMessage('Mock Auto Label 실행에 실패했습니다.')
+      showToast('Mock Auto Label 실행에 실패했습니다.', 'error')
+    } finally {
+      setIsRunningMockAutoLabel(false)
     }
   }
 
@@ -308,7 +456,7 @@ function DatasetDetailPage() {
               type="button"
               className="ui-button ui-button-primary"
               onClick={handleDownloadYolo}
-              disabled={isExporting}
+              disabled={isExporting || !yoloMeta?.available}
             >
               YOLO Export
             </button>
@@ -318,11 +466,92 @@ function DatasetDetailPage() {
 
       {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
 
+      <section className="dataset-detail-hero ui-card">
+        <div className="dataset-detail-hero-content">
+          <span className="ui-badge ui-badge-primary">Annotation Workspace</span>
+
+          <h2>
+            프레임을 검수하고
+            <br />
+            학습 가능한 데이터셋으로 정리합니다.
+          </h2>
+
+          <p>
+            현재 {frames.length}개의 프레임 중 {labeledCount}개가
+            라벨링되었고, {boxedFrameCount}개 프레임에 Bounding Box가 있습니다.
+            미분류 또는 박스 없는 프레임을 우선 처리한 뒤 YOLO Export를 진행하세요.
+          </p>
+
+          <div className="dataset-detail-hero-actions">
+            <button
+              type="button"
+              className="ui-button ui-button-primary ui-button-lg"
+              onClick={() => setSelectedLabel('unlabeled')}
+            >
+              미분류 먼저 보기
+            </button>
+
+            <button
+              type="button"
+              className="ui-button ui-button-secondary ui-button-lg"
+              onClick={() => setSelectedLabel('no_bbox')}
+            >
+              박스 없는 프레임 보기
+            </button>
+
+            <button
+              type="button"
+              className="ui-button ui-button-secondary ui-button-lg"
+              onClick={() => setSelectedLabel('all')}
+            >
+              전체 프레임 보기
+            </button>
+          </div>
+        </div>
+
+        <div className="dataset-detail-progress-card">
+          <div
+            className="dataset-detail-progress-ring"
+            style={{
+              background: `conic-gradient(var(--primary-color) ${
+                progress * 3.6
+              }deg, rgba(255, 255, 255, 0.08) 0deg)`,
+            }}
+          >
+            <div>
+              <strong>{progress}%</strong>
+              <span>Labeling</span>
+            </div>
+          </div>
+
+          <div className="dataset-detail-mini-metrics">
+            <div>
+              <span>라벨 완료</span>
+              <strong>{labeledCount}</strong>
+            </div>
+
+            <div>
+              <span>BBox 완료</span>
+              <strong>{bboxProgress}%</strong>
+            </div>
+
+            <div>
+              <span>박스 없음</span>
+              <strong>{noBoxCount}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <StatsGrid>
         <StatCard label="전체 프레임" value={frames.length} help="학습 후보 이미지" />
         <StatCard label="라벨 완료" value={labeledCount} help="수동 검수 완료" />
-        <StatCard label="미분류" value={labelStats.unlabeled} help="작업 필요 프레임" />
-        <StatCard label="진행률" value={`${progress}%`} help="라벨링 완성도" />
+        <StatCard label="BBox 프레임" value={boxedFrameCount} help="박스 포함 프레임" />
+        <StatCard
+          label="YOLO 박스"
+          value={yoloMeta?.export_box_count ?? 0}
+          help="Export 대상 박스"
+        />
       </StatsGrid>
 
       <div className="dataset-detail-layout">
@@ -364,12 +593,20 @@ function DatasetDetailPage() {
 
           <DatasetInfoPanel dataset={dataset} frameCount={frames.length} />
 
-          <AutoLabelPanel disabled />
+          <AutoLabelPanel
+            disabled={frames.length === 0}
+            isRunningMock={isRunningMockAutoLabel}
+            mockBoxCount={mockBoxCount}
+            onRunMock={handleRunMockAutoLabel}
+          />
 
           <ExportPanel
             isExporting={isExporting}
+            yoloMeta={yoloMeta}
+            isLoadingYoloMeta={isLoadingYoloMeta}
             onDownloadZip={handleDownloadZip}
             onDownloadYolo={handleDownloadYolo}
+            onRefreshYoloMeta={handleRefreshYoloMeta}
           />
         </aside>
       </div>

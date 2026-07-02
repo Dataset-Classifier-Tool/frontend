@@ -1,3 +1,4 @@
+import type { BoundingBox } from './boundingBox'
 import type { Label } from './label'
 
 export interface DatasetFrame {
@@ -7,9 +8,10 @@ export interface DatasetFrame {
   timestamp: number | null
   file_name: string
   file_path: string
-  width: number | null
-  height: number | null
+  width: number
+  height: number
   labels: Label[]
-  created_at: string | null
-  updated_at: string | null
+  bounding_boxes?: BoundingBox[]
+  created_at: string
+  updated_at: string
 }

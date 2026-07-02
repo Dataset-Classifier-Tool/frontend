@@ -2,64 +2,30 @@ import { Link } from 'react-router-dom'
 
 import { Page, PageHeader, StatCard, StatsGrid } from '../../common/ui'
 
-type Plan = {
-  name: string
-  badge: string
-  price: string
-  description: string
-  features: string[]
-  highlighted?: boolean
-  to: string
-  actionText: string
-}
-
-const PLANS: Plan[] = [
+const PLANS = [
   {
     name: 'Free',
-    badge: 'Starter',
-    price: '무료',
-    description: '개인 프로젝트와 기능 테스트에 적합한 기본 플랜입니다.',
-    to: '/datasets',
-    actionText: '무료로 시작하기',
-    features: [
-      '기본 데이터셋 생성',
-      '영상 업로드 및 프레임 추출',
-      '수동 라벨링',
-      '일반 ZIP Export',
-      '하루 10회 작업 제한',
-    ],
+    badge: 'Basic',
+    price: '₩0',
+    desc: '개인 학습과 테스트용 데이터셋 제작에 적합합니다.',
+    features: ['일일 10회 작업', '수동 라벨링', '프레임 조회', '기본 Export'],
+    highlight: false,
   },
   {
     name: 'Premium',
     badge: 'Recommended',
-    price: '월 구독',
-    description: '본격적인 데이터셋 제작과 자동화 기능을 위한 플랜입니다.',
-    highlighted: true,
-    to: '/datasets',
-    actionText: 'Premium 시작하기',
-    features: [
-      'Free 기능 전체 포함',
-      '하루 100회 작업 가능',
-      'AI 자동 라벨링',
-      'YOLO Export',
-      'Bounding Box 편집',
-      '우선 기능 업데이트',
-    ],
+    price: '₩9,900',
+    desc: '더 많은 데이터셋 제작과 AI 자동화 기능을 사용할 수 있습니다.',
+    features: ['일일 100회 작업', '자동 라벨링 예정', 'YOLO Export', '우선 처리'],
+    highlight: true,
   },
   {
     name: 'Admin',
-    badge: 'Operator',
+    badge: 'Operation',
     price: '관리자',
-    description: '플랫폼 운영, 회원 관리, 사용량 제어를 위한 관리자 권한입니다.',
-    to: '/admin/users',
-    actionText: '관리자 콘솔 열기',
-    features: [
-      '회원 목록 조회',
-      '회원 등급 변경',
-      '계정 활성화 / 비활성화',
-      '사용량 정책 관리',
-      '전체 데이터셋 운영 관리',
-    ],
+    desc: '사용자 권한과 서비스 운영 상태를 관리합니다.',
+    features: ['회원 관리', '등급 변경', '활성 상태 관리', '운영 대시보드'],
+    highlight: false,
   },
 ]
 
@@ -69,80 +35,60 @@ function PricingPage() {
       <PageHeader
         badge="Membership"
         title="회원 등급"
-        description="데이터셋 제작 규모와 자동화 수준에 따라 사용할 수 있는 기능을 구분합니다."
-        actions={
-          <Link to="/datasets" className="ui-button ui-button-primary">
-            데이터셋 시작하기
-          </Link>
-        }
+        description="데이터셋 제작 사용량과 AI 기능 접근 권한을 등급별로 관리합니다."
       />
 
       <section className="pricing-hero ui-card">
-        <div className="pricing-hero-content">
-          <span className="ui-badge ui-badge-primary">Scale your dataset</span>
+        <div>
+          <span className="ui-badge ui-badge-primary">Usage Policy</span>
 
           <h2>
-            라벨링 작업이 커질수록
+            데이터셋 제작 규모에 맞춰
             <br />
-            자동화가 중요해집니다.
+            사용량과 AI 기능을 확장합니다.
           </h2>
 
           <p>
-            Free 플랜으로 기본 흐름을 검증하고, Premium 플랜에서 자동 라벨링과
-            YOLO Export를 연결해 실제 학습 파이프라인으로 확장할 수 있습니다.
+            현재는 Free, Premium, Admin 등급 구조를 기준으로 사용량 제한과
+            자동 라벨링 권한을 연결할 수 있도록 설계되어 있습니다.
           </p>
 
           <div className="pricing-hero-actions">
             <Link to="/datasets" className="ui-button ui-button-primary ui-button-lg">
-              데이터셋 만들기
+              데이터셋 시작하기
             </Link>
 
-            <Link to="/upload" className="ui-button ui-button-secondary ui-button-lg">
-              영상 업로드
+            <Link to="/admin/users" className="ui-button ui-button-secondary ui-button-lg">
+              회원 관리
             </Link>
           </div>
-        </div>
-
-        <div className="pricing-hero-metric">
-          <strong>10x</strong>
-          <span>Premium 작업 한도</span>
         </div>
       </section>
 
       <StatsGrid>
-        <StatCard label="Free" value="10회" help="일일 기본 작업 한도" />
-        <StatCard label="Premium" value="100회" help="일일 확장 작업 한도" />
-        <StatCard label="Auto Label" value="Premium" help="자동 라벨링 권한" />
-        <StatCard label="Admin" value="관리자" help="회원 및 정책 제어" />
+        <StatCard label="Free" value="10회" help="일일 기본 작업량" />
+        <StatCard label="Premium" value="100회" help="확장 작업량" />
+        <StatCard label="AI 기능" value="예정" help="자동 라벨링 연결" />
+        <StatCard label="관리자" value="운영" help="회원 등급 관리" />
       </StatsGrid>
 
-      <section className="pricing-grid">
+      <section className="pricing-plan-grid">
         {PLANS.map((plan) => (
           <article
-            className={`pricing-card ui-card ui-card-hover ${
-              plan.highlighted ? 'is-highlighted' : ''
+            className={`pricing-plan-card ui-card ui-card-hover ${
+              plan.highlight ? 'is-highlight' : ''
             }`}
             key={plan.name}
           >
-            {plan.highlighted && <div className="pricing-card-glow" />}
+            <span className="ui-badge ui-badge-primary">{plan.badge}</span>
 
-            <div className="pricing-card-header">
-              <span
-                className={`ui-badge ${
-                  plan.highlighted ? 'ui-badge-primary' : ''
-                }`}
-              >
-                {plan.badge}
-              </span>
+            <h2>{plan.name}</h2>
 
-              <h2>{plan.name}</h2>
+            <div className="pricing-price">{plan.price}</div>
 
-              <strong>{plan.price}</strong>
+            <p>{plan.desc}</p>
 
-              <p>{plan.description}</p>
-            </div>
-
-            <ul className="pricing-feature-list">
+            <ul>
               {plan.features.map((feature) => (
                 <li key={feature}>
                   <span>✓</span>
@@ -152,50 +98,15 @@ function PricingPage() {
             </ul>
 
             <Link
-              to={plan.to}
+              to={plan.name === 'Admin' ? '/admin/users' : '/datasets'}
               className={`ui-button ${
-                plan.highlighted ? 'ui-button-primary' : 'ui-button-secondary'
-              } pricing-card-button`}
+                plan.highlight ? 'ui-button-primary' : 'ui-button-secondary'
+              }`}
             >
-              {plan.actionText}
+              {plan.name === 'Admin' ? '관리자 화면' : '시작하기'}
             </Link>
           </article>
         ))}
-      </section>
-
-      <section className="pricing-policy ui-card">
-        <div className="pricing-policy-content">
-          <span className="ui-badge ui-badge-primary">Policy</span>
-
-          <h2>현재 적용 예정 정책</h2>
-
-          <p>
-            초기 MVP에서는 기능 검증을 우선하며, 이후 사용량 제한과 자동 라벨링
-            권한을 백엔드 정책과 연결합니다.
-          </p>
-        </div>
-
-        <div className="pricing-policy-grid">
-          <div>
-            <span>Free</span>
-            <strong>10회 / 일</strong>
-          </div>
-
-          <div>
-            <span>Premium</span>
-            <strong>100회 / 일</strong>
-          </div>
-
-          <div>
-            <span>Auto Labeling</span>
-            <strong>Premium 이상</strong>
-          </div>
-
-          <div>
-            <span>Admin Control</span>
-            <strong>관리자 전용</strong>
-          </div>
-        </div>
       </section>
     </Page>
   )

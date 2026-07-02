@@ -27,32 +27,48 @@ function FrameGrid({
 }: FrameGridProps) {
   if (frames.length === 0) {
     return (
-      <div className="ui-empty dataset-frame-empty">
+      <div className="dataset-frame-empty ui-card">
         <div className="dataset-frame-empty-icon">🖼️</div>
 
         <div>
-          <h3 className="ui-empty-title">표시할 프레임이 없습니다</h3>
-          <p className="ui-empty-description">
-            필터를 변경하거나 영상을 추가로 업로드해주세요.
-          </p>
+          <h3>표시할 프레임이 없습니다</h3>
+          <p>필터를 변경하거나 영상을 추가로 업로드해주세요.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="dataset-frame-grid">
-      {frames.map((frame, frameIndex) => (
-        <FrameCard
-          key={frame.id}
-          datasetId={datasetId}
-          frame={frame}
-          labelOptions={labelOptions}
-          onOpen={() => onOpenFrame(frameIndex)}
-          onLabel={onLabelFrame}
-        />
-      ))}
-    </div>
+    <section className="dataset-frame-grid-wrap">
+      <div className="dataset-frame-grid-head">
+        <div>
+          <span className="ui-badge ui-badge-primary">Frame Browser</span>
+          <h2>프레임 라벨링</h2>
+          <p>프레임을 클릭하면 크게 확인하고 단축키로 빠르게 라벨링할 수 있습니다.</p>
+        </div>
+
+        <div className="dataset-frame-grid-guide">
+          <span>F 화재</span>
+          <span>S 연기</span>
+          <span>C 등화류</span>
+          <span>N 일반</span>
+        </div>
+      </div>
+
+      <div className="dataset-frame-grid">
+        {frames.map((frame, frameIndex) => (
+          <FrameCard
+            key={frame.id}
+            datasetId={datasetId}
+            frame={frame}
+            frameIndex={frameIndex}
+            labelOptions={labelOptions}
+            onOpen={() => onOpenFrame(frameIndex)}
+            onLabel={onLabelFrame}
+          />
+        ))}
+      </div>
+    </section>
   )
 }
 

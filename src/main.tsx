@@ -7,19 +7,25 @@ import { ToastProvider } from './common/ui'
 
 import './styles/variables.css'
 import './styles/global.css'
+
 import './styles/layout.css'
 import './styles/ui.css'
 import './styles/forms.css'
+import './styles/feedback.css'
+import './styles/animations.css'
+
 import './styles/auth.css'
 import './styles/home.css'
+import './styles/dashboard.css'
 import './styles/dataset.css'
-import './styles/modal.css'
 import './styles/upload.css'
+import './styles/labeling.css'
 import './styles/admin.css'
 import './styles/pricing.css'
-import './styles/feedback.css'
 import './styles/not-found.css'
-import './styles/animations.css'
+import './styles/oauth.css'
+
+import './styles/modal.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

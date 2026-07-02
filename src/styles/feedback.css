@@ -187,6 +187,165 @@ Confirm Dialog
     }
 }
 
+/*
+=========================================================
+Notification Center
+=========================================================
+*/
+
+.notification-center {
+    position: relative;
+}
+
+.notification-trigger {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.notification-trigger:hover {
+    transform: translateY(-1px);
+    border-color: rgba(62, 207, 142, 0.28);
+    background: rgba(62, 207, 142, 0.08);
+}
+
+.notification-count {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    min-width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    padding: 0 6px;
+    border: 2px solid #0b101a;
+    border-radius: 999px;
+    background: var(--primary-color);
+    color: #03130b;
+    font-size: 11px;
+    font-weight: 950;
+}
+
+.notification-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    z-index: 260;
+    width: min(420px, calc(100vw - 40px));
+    padding: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(8, 12, 20, 0.98));
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.46);
+    backdrop-filter: blur(20px);
+    animation: notification-pop 0.18s ease;
+}
+
+.notification-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.notification-panel-header h2 {
+    margin: 12px 0 0;
+    color: var(--text-primary);
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -0.05em;
+}
+
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification-item {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.notification-item.is-unread {
+    border-color: rgba(62, 207, 142, 0.28);
+    background: rgba(62, 207, 142, 0.06);
+}
+
+.notification-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 950;
+}
+
+.notification-success .notification-icon {
+    background: rgba(62, 207, 142, 0.14);
+    color: var(--primary-color);
+}
+
+.notification-info .notification-icon {
+    background: rgba(59, 130, 246, 0.14);
+    color: #93c5fd;
+}
+
+.notification-warning .notification-icon {
+    background: rgba(245, 158, 11, 0.14);
+    color: #fbbf24;
+}
+
+.notification-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 950;
+}
+
+.notification-item p {
+    margin: 0 0 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.notification-item span {
+    color: var(--text-disabled);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+@keyframes notification-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
 @media (max-width: 760px) {
     .toast-container {
         right: 20px;
@@ -199,5 +358,13 @@ Confirm Dialog
 
     .confirm-dialog-actions {
         grid-template-columns: 1fr;
+    }
+
+    .notification-panel {
+        position: fixed;
+        top: 84px;
+        right: 20px;
+        left: 20px;
+        width: auto;
     }
 }

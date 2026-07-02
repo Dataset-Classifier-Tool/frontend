@@ -208,7 +208,7 @@ function DatasetListPage() {
         <PageHeader
           badge="Dataset Studio"
           title="데이터셋 관리"
-          description="AI 학습용 프로젝트를 생성하고 관리합니다."
+          description="AI 학습용 프로젝트를 생성하고 영상·프레임·라벨링 상태를 관리합니다."
         />
 
         <StatsGrid>
@@ -226,12 +226,13 @@ function DatasetListPage() {
 
         <div className="dataset-workspace">
           <aside className="dataset-create-panel ui-card">
-            <span className="ui-badge ui-badge-primary">새 프로젝트</span>
+            <div className="dataset-create-hero">
+              <span className="ui-badge ui-badge-primary">새 프로젝트</span>
 
-            <div>
               <h2 className="dataset-panel-title">데이터셋 생성</h2>
+
               <p className="dataset-panel-description">
-                수집 목적, 촬영 환경, 라벨 기준을 정리한 데이터셋 프로젝트를 생성합니다.
+                수집 목적, 촬영 환경, 라벨 기준을 정리한 뒤 학습용 데이터셋 제작을 시작합니다.
               </p>
             </div>
 
@@ -274,6 +275,11 @@ function DatasetListPage() {
                 {isCreating ? '생성 중...' : '데이터셋 생성'}
               </button>
             </form>
+
+            <div className="dataset-create-guide">
+              <strong>추천 작성 기준</strong>
+              <span>장소 / 시간대 / 목적 / 주요 라벨을 함께 적어두면 나중에 Export와 학습 관리가 쉬워집니다.</span>
+            </div>
           </aside>
 
           <section className="dataset-list-panel ui-card">

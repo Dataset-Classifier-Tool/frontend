@@ -27,12 +27,12 @@ Upload Page
 
 .upload-main-panel {
     padding: 30px;
-    border-radius: 28px;
+    border-radius: 30px;
     border: 1px solid rgba(148, 163, 184, 0.12);
     background:
-        radial-gradient(circle at top left, rgba(62, 207, 142, 0.08), transparent 34%),
-        linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(8, 12, 20, 0.95));
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.1), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(8, 12, 20, 0.97));
+    box-shadow: 0 26px 64px rgba(0, 0, 0, 0.2);
 }
 
 .upload-side-panel {
@@ -52,7 +52,7 @@ Upload Page
     color: var(--text-primary);
     font-size: 30px;
     font-weight: 950;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.055em;
 }
 
 .upload-section-head p {
@@ -70,41 +70,84 @@ Drop Zone
 */
 
 .upload-dropzone {
-    min-height: 280px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 14px;
+    position: relative;
+    min-height: 320px;
+    display: grid;
+    place-items: center;
+    gap: 18px;
     margin: 26px 0;
-    padding: 30px;
+    padding: 34px;
+    overflow: hidden;
     border: 2px dashed rgba(148, 163, 184, 0.24);
-    border-radius: 26px;
+    border-radius: 30px;
     background:
-        radial-gradient(circle at center, rgba(62, 207, 142, 0.06), transparent 45%),
-        rgba(255, 255, 255, 0.03);
+        radial-gradient(circle at center, rgba(62, 207, 142, 0.08), transparent 45%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
     cursor: pointer;
     transition: var(--transition);
 }
 
-.upload-dropzone:hover {
-    transform: translateY(-2px);
-    border-color: rgba(62, 207, 142, 0.46);
+.upload-dropzone::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    opacity: 0;
     background:
-        radial-gradient(circle at center, rgba(62, 207, 142, 0.1), transparent 46%),
-        rgba(62, 207, 142, 0.04);
+        conic-gradient(
+            from 180deg,
+            transparent,
+            rgba(62, 207, 142, 0.2),
+            transparent,
+            rgba(59, 130, 246, 0.14),
+            transparent
+        );
+    animation: upload-glow-spin 7s linear infinite;
+    transition: var(--transition);
 }
 
-.upload-dropzone.is-dragging {
-    transform: scale(1.01);
-    border-color: var(--primary-color);
-    background: rgba(62, 207, 142, 0.09);
-    box-shadow: 0 0 0 4px rgba(62, 207, 142, 0.1);
+.upload-dropzone::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at center, rgba(62, 207, 142, 0.07), transparent 45%),
+        rgba(2, 6, 23, 0.7);
 }
 
+.upload-dropzone:hover,
+.upload-dropzone.is-dragging,
 .upload-dropzone.is-selected {
-    border-color: rgba(62, 207, 142, 0.5);
-    background: rgba(62, 207, 142, 0.06);
+    transform: translateY(-3px);
+    border-color: rgba(62, 207, 142, 0.52);
+    box-shadow:
+        0 24px 62px rgba(0, 0, 0, 0.28),
+        0 0 0 4px rgba(62, 207, 142, 0.08);
+}
+
+.upload-dropzone:hover::before,
+.upload-dropzone.is-dragging::before,
+.upload-dropzone.is-selected::before {
+    opacity: 1;
+}
+
+.upload-dropzone > * {
+    position: relative;
+    z-index: 1;
+}
+
+.upload-dropzone-orbit {
+    width: 104px;
+    height: 104px;
+    display: grid;
+    place-items: center;
+    border-radius: 36px;
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 36%),
+        rgba(62, 207, 142, 0.13);
+    box-shadow:
+        0 0 0 1px rgba(62, 207, 142, 0.18),
+        0 0 42px rgba(62, 207, 142, 0.18);
 }
 
 .upload-dropzone-icon {
@@ -112,22 +155,55 @@ Drop Zone
     height: 78px;
     display: grid;
     place-items: center;
-    border-radius: 26px;
-    background: rgba(62, 207, 142, 0.12);
+    border-radius: 28px;
+    background: rgba(15, 23, 42, 0.78);
     font-size: 42px;
-    box-shadow: 0 0 32px rgba(62, 207, 142, 0.12);
 }
 
-.upload-dropzone strong {
+.upload-file-empty,
+.upload-file-selected {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.upload-file-empty strong,
+.upload-file-selected strong {
+    max-width: 620px;
     color: var(--text-primary);
-    font-size: 19px;
+    font-size: 20px;
+    font-weight: 950;
+    line-height: 1.35;
+}
+
+.upload-file-empty p,
+.upload-file-selected p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.upload-dropzone-button {
+    margin-top: 10px;
+    padding: 11px 16px;
+    border-radius: 999px;
+    background: rgba(62, 207, 142, 0.14);
+    color: var(--primary-color);
+    font-size: 13px;
     font-weight: 950;
 }
 
-.upload-dropzone span {
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 700;
+@keyframes upload-glow-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /*
@@ -136,11 +212,40 @@ Settings
 =========================================================
 */
 
+.upload-settings-card,
+.upload-summary-card,
+.upload-flow-card {
+    padding: 24px;
+    border-radius: 26px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background:
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.84), rgba(8, 12, 20, 0.96));
+    box-shadow: 0 22px 54px rgba(0, 0, 0, 0.18);
+}
+
+.upload-settings-head h2,
+.upload-summary-card h2,
+.upload-flow-card h3 {
+    margin: 16px 0 8px;
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 950;
+    letter-spacing: -0.045em;
+}
+
+.upload-settings-head p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
 .upload-setting-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
-    margin-top: 28px;
+    margin-top: 22px;
 }
 
 .upload-setting-card {
@@ -150,8 +255,7 @@ Settings
     padding: 20px;
     border: 1px solid rgba(148, 163, 184, 0.12);
     border-radius: 20px;
-    background:
-        linear-gradient(180deg, rgba(15, 23, 42, 0.76), rgba(8, 12, 20, 0.86));
+    background: rgba(255, 255, 255, 0.04);
     transition: var(--transition);
 }
 
@@ -177,13 +281,14 @@ Settings
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
 }
 
 .upload-interval-control button {
-    width: 38px;
-    height: 38px;
-    border: 0;
-    border-radius: 13px;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 14px;
     background: rgba(255, 255, 255, 0.06);
     color: var(--text-primary);
     font-size: 18px;
@@ -192,9 +297,14 @@ Settings
     transition: var(--transition);
 }
 
-.upload-interval-control button:hover {
+.upload-interval-control button:hover:not(:disabled) {
     background: rgba(62, 207, 142, 0.15);
     color: var(--primary-color);
+}
+
+.upload-interval-control button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .upload-interval-control strong {
@@ -213,7 +323,7 @@ Auto Label
     display: flex;
     align-items: flex-start;
     gap: 16px;
-    margin-top: 28px;
+    margin-top: 22px;
     padding: 20px;
     border: 1px solid rgba(62, 207, 142, 0.18);
     border-radius: 20px;
@@ -252,40 +362,14 @@ Auto Label
 
 .upload-submit-button {
     width: 100%;
-    margin-top: 26px;
+    margin-top: 22px;
 }
 
 /*
 =========================================================
-Summary / Flow Cards
+Summary
 =========================================================
 */
-
-.upload-summary-card,
-.upload-flow-card,
-.upload-settings-card {
-    padding: 24px;
-    border-radius: 24px;
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    background:
-        linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(8, 12, 20, 0.94));
-}
-
-.upload-summary-card h2,
-.upload-settings-card h2 {
-    margin: 18px 0 20px;
-    color: var(--text-primary);
-    font-size: 24px;
-    font-weight: 950;
-    letter-spacing: -0.04em;
-}
-
-.upload-flow-card h3 {
-    margin: 0;
-    color: var(--text-primary);
-    font-size: 18px;
-    font-weight: 950;
-}
 
 .upload-summary-row {
     display: flex;
@@ -306,50 +390,57 @@ Summary / Flow Cards
 }
 
 .upload-summary-row strong {
+    max-width: 190px;
+    overflow: hidden;
     color: var(--text-primary);
     font-size: 13px;
     font-weight: 950;
     text-align: right;
-}
-
-.upload-flow-card ol {
-    margin: 18px 0 0;
-    padding-left: 20px;
-}
-
-.upload-flow-card li {
-    margin-bottom: 12px;
-    color: var(--text-secondary);
-    font-size: 13px;
-    line-height: 1.75;
-}
-
-.upload-flow-card li::marker {
-    color: var(--primary-color);
-    font-weight: 950;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /*
 =========================================================
-Checkbox
+Flow
 =========================================================
 */
 
-.upload-checkbox {
+.upload-flow-list {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 10px;
-    margin-top: 4px;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
+    margin-top: 20px;
 }
 
-.upload-checkbox input {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary-color);
+.upload-flow-item {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 13px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.upload-flow-item strong {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: rgba(62, 207, 142, 0.12);
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 950;
+}
+
+.upload-flow-item span {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 850;
+    line-height: 1.5;
 }
 
 /*
@@ -378,6 +469,17 @@ Responsive
     }
 
     .upload-dropzone {
-        min-height: 220px;
+        min-height: 240px;
+        padding: 24px;
+    }
+
+    .upload-summary-row {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .upload-summary-row strong {
+        max-width: 100%;
+        text-align: left;
     }
 }

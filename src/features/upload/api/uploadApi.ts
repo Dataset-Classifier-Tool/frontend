@@ -31,8 +31,13 @@ export async function getVideoFramesApi(videoId: number) {
   return response.data
 }
 
-export function getFrameImageUrl(frameId: number) {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL
+export async function getDatasetFrameImageBlobApi(
+  _datasetId: number,
+  frameId: number,
+) {
+  const response = await apiClient.get(`/api/frames/${frameId}/image`, {
+    responseType: 'blob',
+  })
 
-  return `${baseUrl}/api/frames/${frameId}/image`
+  return response.data as Blob
 }

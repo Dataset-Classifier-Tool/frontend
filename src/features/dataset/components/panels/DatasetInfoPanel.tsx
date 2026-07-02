@@ -21,12 +21,27 @@ function formatDate(dateText: string | null) {
 
 function DatasetInfoPanel({ dataset, frameCount }: DatasetInfoPanelProps) {
   return (
-    <article className="ui-card dataset-side-card">
-      <span className="ui-badge ui-badge-primary">데이터셋 정보</span>
+    <article className="dataset-side-panel dataset-info-panel ui-card">
+      <div className="dataset-side-panel-head">
+        <div>
+          <span className="ui-badge ui-badge-primary">Dataset Info</span>
+          <h2>데이터셋 정보</h2>
+          <p>현재 작업 중인 데이터셋의 기본 정보를 확인합니다.</p>
+        </div>
+      </div>
+
+      <div className="dataset-info-summary">
+        <div className="dataset-info-icon">📁</div>
+
+        <div>
+          <strong>{dataset.name}</strong>
+          <span>{dataset.description || '설명이 없습니다.'}</span>
+        </div>
+      </div>
 
       <div className="dataset-info-list">
         <div>
-          <span>데이터셋 ID</span>
+          <span>Dataset ID</span>
           <strong>#{dataset.id}</strong>
         </div>
 
@@ -36,13 +51,18 @@ function DatasetInfoPanel({ dataset, frameCount }: DatasetInfoPanelProps) {
         </div>
 
         <div>
-          <span>영상 수</span>
-          <strong>{dataset.video_count ?? 0}</strong>
+          <span>원천 영상</span>
+          <strong>{dataset.video_count ?? dataset.videos?.length ?? 0}개</strong>
         </div>
 
         <div>
-          <span>프레임 수</span>
-          <strong>{dataset.frame_count ?? frameCount}</strong>
+          <span>프레임</span>
+          <strong>{frameCount}개</strong>
+        </div>
+
+        <div>
+          <span>Export 상태</span>
+          <strong>{frameCount > 0 ? '준비 가능' : '프레임 필요'}</strong>
         </div>
       </div>
     </article>

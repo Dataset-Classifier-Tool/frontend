@@ -1,74 +1,57 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { EmptyState, Loading, Page, useToast } from '../../common/ui'
-import { useAuthStore } from '../../stores/authStore'
+import { Page } from '../../common/ui'
 
 function OAuthCallbackPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { showToast } = useToast()
 
-  const loadMe = useAuthStore((state) => state.loadMe)
-
-  const [message, setMessage] = useState('소셜 로그인 처리 중입니다...')
-  const [isError, setIsError] = useState(false)
+  const token = searchParams.get('token')
+  const error = searchParams.get('error')
 
   useEffect(() => {
-    const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
-    const error = searchParams.get('error')
+    if (token) {
+      localStorage.setItem('accessToken', token)
 
-    if (error) {
-      setIsError(true)
-      setMessage(error)
-      showToast(error, 'error')
-      return
+      const timer = window.setTimeout(() => {
+        navigate('/dashboard')
+      }, 1200)
+
+      return () => window.clearTimeout(timer)
     }
 
-    if (!accessToken || !refreshToken) {
-      const errorMessage = '로그인 토큰이 없습니다.'
+    return undefined
+  }, [navigate, token])
 
-      setIsError(true)
-      setMessage(errorMessage)
-      showToast(errorMessage, 'error')
-      return
-    }
-
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
-
-    loadMe()
-      .then(() => {
-        showToast('소셜 로그인에 성공했습니다.', 'success')
-        navigate('/datasets')
-      })
-      .catch(() => {
-        const errorMessage = '로그인 사용자 정보를 불러오지 못했습니다.'
-
-        setIsError(true)
-        setMessage(errorMessage)
-        showToast(errorMessage, 'error')
-      })
-  }, [searchParams, loadMe, navigate, showToast])
+  const isSuccess = Boolean(token) && !error
 
   return (
     <Page className="oauth-page">
       <section className="oauth-card ui-card">
-        {isError ? (
-          <EmptyState
-            icon="⚠️"
-            title="소셜 로그인 실패"
-            description={message}
-            action={
-              <Link to="/login" className="ui-button ui-button-primary">
-                로그인으로 돌아가기
-              </Link>
-            }
-          />
-        ) : (
-          <Loading title="소셜 로그인 처리 중" description={message} />
-        )}
+        <div className={`oauth-status-orb ${isSuccess ? 'is-success' : 'is-error'}`}>
+          {isSuccess ? '✓' : '!'}
+        </div>
+
+        <span className="ui-badge ui-badge-primary">OAuth Callback</span>
+
+        <h1>{isSuccess ? '소셜 로그인 처리 중입니다.' : '소셜 로그인에 실패했습니다.'}</h1>
+
+        <p>
+          {isSuccess
+            ? '인증 토큰을 확인했습니다. 잠시 후 대시보드로 이동합니다.'
+            : '인증 과정에서 문제가 발생했습니다. 다시 로그인하거나 일반 로그인을 사용해주세요.'}
+        </p>
+
+        <div className="oauth-actions">
+          <Link to="/login" className="ui-button ui-button-secondary ui-button-lg">
+            로그인 화면
+          </Link>
+
+          <Link to="/dashboard" className="ui-button ui-button-primary ui-button-lg">
+            대시보드
+          </Link>
+        </div>
       </section>
     </Page>
   )

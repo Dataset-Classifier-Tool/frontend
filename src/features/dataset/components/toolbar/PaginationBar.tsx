@@ -11,28 +11,23 @@ type PaginationBarProps = {
 function PaginationBar({
   currentPage,
   totalPages,
-  pageSize,
   totalCount,
   startIndex,
   endIndex,
   onPageChange,
 }: PaginationBarProps) {
-  if (totalCount === 0) return null
+  const isFirstPage = currentPage <= 1
+  const isLastPage = currentPage >= totalPages
 
   return (
-    <div className="pagination-bar">
+    <nav className="pagination-bar" aria-label="프레임 페이지 이동">
       <div className="pagination-info">
-        <span className="ui-badge ui-badge-primary">Page</span>
-
-        <div>
-          <strong>
-            {startIndex + 1} - {endIndex}
-          </strong>
-
-          <span>
-            / 전체 {totalCount}개 · 페이지당 {pageSize}개
-          </span>
-        </div>
+        <strong>{totalCount}</strong>
+        <span>개 프레임 중</span>
+        <strong>{totalCount === 0 ? 0 : startIndex + 1}</strong>
+        <span>-</span>
+        <strong>{endIndex}</strong>
+        <span>표시</span>
       </div>
 
       <div className="pagination-actions">
@@ -40,7 +35,7 @@ function PaginationBar({
           type="button"
           className="ui-button ui-button-secondary ui-button-sm"
           onClick={() => onPageChange(1)}
-          disabled={currentPage <= 1}
+          disabled={isFirstPage}
         >
           처음
         </button>
@@ -49,7 +44,7 @@ function PaginationBar({
           type="button"
           className="ui-button ui-button-secondary ui-button-sm"
           onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage <= 1}
+          disabled={isFirstPage}
         >
           이전
         </button>
@@ -62,7 +57,7 @@ function PaginationBar({
           type="button"
           className="ui-button ui-button-secondary ui-button-sm"
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages}
+          disabled={isLastPage}
         >
           다음
         </button>
@@ -71,12 +66,12 @@ function PaginationBar({
           type="button"
           className="ui-button ui-button-secondary ui-button-sm"
           onClick={() => onPageChange(totalPages)}
-          disabled={currentPage >= totalPages}
+          disabled={isLastPage}
         >
           마지막
         </button>
       </div>
-    </div>
+    </nav>
   )
 }
 

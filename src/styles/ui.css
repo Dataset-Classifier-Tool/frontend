@@ -612,3 +612,47 @@ Loading / Skeleton
         background-position: -220% 0;
     }
 }
+
+/*
+=========================================================
+Button Polish
+=========================================================
+*/
+
+.ui-button {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.ui-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent);
+    transition: var(--transition);
+}
+
+.ui-button:hover::before {
+    opacity: 1;
+}
+
+.ui-button-primary {
+    box-shadow:
+        0 12px 28px rgba(62, 207, 142, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.ui-button-secondary {
+    box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.ui-button-danger {
+    box-shadow:
+        0 12px 28px rgba(239, 68, 68, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}

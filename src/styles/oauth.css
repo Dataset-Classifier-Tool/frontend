@@ -1,20 +1,20 @@
 /*
 =========================================================
-Not Found Page
+OAuth Callback Page
 =========================================================
 */
 
-.not-found-page {
+.oauth-page {
     min-height: calc(100vh - var(--header-height) - 68px);
     display: grid;
     place-items: center;
 }
 
-.not-found-hero {
+.oauth-card {
     position: relative;
-    width: min(760px, 100%);
+    width: min(720px, 100%);
     overflow: hidden;
-    padding: 52px;
+    padding: 48px;
     border-radius: 34px;
     border: 1px solid rgba(148, 163, 184, 0.12);
     background:
@@ -25,7 +25,7 @@ Not Found Page
     box-shadow: 0 28px 70px rgba(0, 0, 0, 0.22);
 }
 
-.not-found-hero::before {
+.oauth-card::before {
     content: "";
     position: absolute;
     right: -140px;
@@ -38,43 +38,55 @@ Not Found Page
     pointer-events: none;
 }
 
-.not-found-code {
+.oauth-status-orb,
+.oauth-card .ui-badge,
+.oauth-card h1,
+.oauth-card p,
+.oauth-actions {
     position: relative;
     z-index: 1;
-    margin-bottom: 18px;
-    color: var(--primary-color);
-    font-size: clamp(82px, 14vw, 150px);
+}
+
+.oauth-status-orb {
+    width: 92px;
+    height: 92px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 22px;
+    border-radius: 32px;
+    font-size: 38px;
     font-weight: 950;
-    line-height: 0.9;
-    letter-spacing: -0.08em;
-    text-shadow: 0 0 42px rgba(62, 207, 142, 0.2);
 }
 
-.not-found-hero .ui-badge,
-.not-found-hero h1,
-.not-found-hero p,
-.not-found-actions {
-    position: relative;
-    z-index: 1;
+.oauth-status-orb.is-success {
+    background: rgba(62, 207, 142, 0.14);
+    color: var(--primary-color);
+    box-shadow: 0 0 42px rgba(62, 207, 142, 0.16);
 }
 
-.not-found-hero h1 {
+.oauth-status-orb.is-error {
+    background: rgba(239, 68, 68, 0.14);
+    color: #fca5a5;
+    box-shadow: 0 0 42px rgba(239, 68, 68, 0.14);
+}
+
+.oauth-card h1 {
     margin: 18px 0 14px;
     color: var(--text-primary);
-    font-size: clamp(30px, 4vw, 46px);
+    font-size: clamp(30px, 4vw, 44px);
     font-weight: 950;
     letter-spacing: -0.065em;
 }
 
-.not-found-hero p {
-    max-width: 580px;
+.oauth-card p {
+    max-width: 560px;
     margin: 0 auto;
     color: var(--text-secondary);
     font-size: 15px;
     line-height: 1.85;
 }
 
-.not-found-actions {
+.oauth-actions {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -83,7 +95,7 @@ Not Found Page
 }
 
 @media (max-width: 760px) {
-    .not-found-hero {
+    .oauth-card {
         padding: 34px 24px;
     }
 }

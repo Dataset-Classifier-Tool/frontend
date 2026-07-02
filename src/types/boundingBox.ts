@@ -1,5 +1,7 @@
 import type { LabelName } from './label'
 
+export type BoundingBoxSource = 'manual' | 'auto' | 'mock'
+
 export interface BoundingBox {
   id: number
   frame_id: number
@@ -9,27 +11,33 @@ export interface BoundingBox {
   y: number
   width: number
   height: number
-  source: 'manual' | 'ai'
+  source: BoundingBoxSource
+  confidence: number | null
   is_verified: boolean
-  created_at: string | null
-  updated_at: string | null
+  created_at: string
+  updated_at: string
 }
 
-export interface CreateBoundingBoxRequest {
+export type CreateBoundingBoxRequest = {
   frame_id: number
-  label_id?: number | null
+  label_id: number | null
   label_name: LabelName
   x: number
   y: number
   width: number
   height: number
+  source?: BoundingBoxSource
+  confidence?: number | null
+  is_verified?: boolean
 }
 
-export interface UpdateBoundingBoxRequest {
+export type UpdateBoundingBoxRequest = {
   label_name?: LabelName
   x?: number
   y?: number
   width?: number
   height?: number
+  source?: BoundingBoxSource
+  confidence?: number | null
   is_verified?: boolean
 }

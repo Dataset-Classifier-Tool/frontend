@@ -1,58 +1,67 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { ChangeEvent } from 'react'
 
 import {
-  getAdminUsersApi,
-  updateUserActiveApi,
-  updateUserMembershipApi,
-} from '../../features/admin'
-import {
-  ConfirmDialog,
   EmptyState,
+  Loading,
   Page,
   PageHeader,
-  Skeleton,
   StatCard,
   StatsGrid,
   useToast,
 } from '../../common/ui'
+import {
+  getAdminUsersApi,
+  updateUserActiveApi,
+  updateUserMembershipApi,
+} from '../../features/admin/api/adminApi'
 import type { MembershipType } from '../../types/auth'
 import type { AdminUser } from '../../types/user'
 
+type MembershipFilter = 'all' | MembershipType
+type StatusFilter = 'all' | 'active' | 'inactive'
+
 const MEMBERSHIP_LABEL: Record<MembershipType, string> = {
-  free: '무료',
-  premium: '프리미엄',
+  free: 'Free',
+  premium: 'Premium',
   admin: '관리자',
 }
 
-const MEMBERSHIP_BADGE_CLASS: Record<MembershipType, string> = {
-  free: '',
-  premium: 'ui-badge-primary',
-  admin: 'ui-badge-warning',
+function formatDate(dateText: string | null) {
+  if (!dateText) return '날짜 없음'
+
+  const date = new Date(dateText)
+
+  if (Number.isNaN(date.getTime())) return '날짜 없음'
+
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
 }
 
 function AdminUsersPage() {
   const { showToast } = useToast()
 
   const [users, setUsers] = useState<AdminUser[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [updatingUserId, setUpdatingUserId] = useState<number | null>(null)
   const [searchKeyword, setSearchKeyword] = useState('')
-  const [activeTarget, setActiveTarget] = useState<AdminUser | null>(null)
-  const [isUpdatingActive, setIsUpdatingActive] = useState(false)
+  const [membershipFilter, setMembershipFilter] = useState<MembershipFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const fetchUsers = async () => {
-    setIsLoading(true)
-    setErrorMessage('')
-
     try {
+      setIsLoading(true)
+      setErrorMessage('')
+
       const response = await getAdminUsersApi()
       setUsers(response.data)
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || '회원 목록을 불러오지 못했습니다.'
-
-      setErrorMessage(message)
-      showToast(message, 'error')
+    } catch {
+      setErrorMessage('회원 목록을 불러오지 못했습니다.')
+      showToast('회원 목록을 불러오지 못했습니다.', 'error')
     } finally {
       setIsLoading(false)
     }
@@ -65,258 +74,272 @@ function AdminUsersPage() {
   const filteredUsers = useMemo(() => {
     const keyword = searchKeyword.trim().toLowerCase()
 
-    if (!keyword) return users
-
     return users.filter((user) => {
-      return (
+      const matchesKeyword =
+        !keyword ||
+        user.email.toLowerCase().includes(keyword) ||
         user.name?.toLowerCase().includes(keyword) ||
-        user.nickname?.toLowerCase().includes(keyword) ||
-        user.email?.toLowerCase().includes(keyword) ||
-        user.provider?.toLowerCase().includes(keyword) ||
-        user.membership_type?.toLowerCase().includes(keyword)
-      )
-    })
-  }, [users, searchKeyword])
+        user.nickname?.toLowerCase().includes(keyword)
 
-  const totalUsers = users.length
-  const activeUsers = users.filter((user) => user.is_active).length
-  const inactiveUsers = totalUsers - activeUsers
-  const adminUsers = users.filter((user) => user.membership_type === 'admin').length
-  const premiumUsers = users.filter(
-    (user) => user.membership_type === 'premium',
-  ).length
+      const matchesMembership =
+        membershipFilter === 'all' || user.membership_type === membershipFilter
+
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' && user.is_active) ||
+        (statusFilter === 'inactive' && !user.is_active)
+
+      return matchesKeyword && matchesMembership && matchesStatus
+    })
+  }, [users, searchKeyword, membershipFilter, statusFilter])
+
+  const adminCount = users.filter((user) => user.membership_type === 'admin').length
+  const premiumCount = users.filter((user) => user.membership_type === 'premium').length
+  const activeCount = users.filter((user) => user.is_active).length
+  const inactiveCount = users.length - activeCount
 
   const handleMembershipChange = async (
     userId: number,
-    membershipType: MembershipType,
+    event: ChangeEvent<HTMLSelectElement>,
   ) => {
+    const nextMembership = event.target.value as MembershipType
+
     try {
-      const response = await updateUserMembershipApi(userId, {
-        membership_type: membershipType,
+      setUpdatingUserId(userId)
+      setErrorMessage('')
+
+      await updateUserMembershipApi(userId, {
+        membership_type: nextMembership,
       })
 
-      setUsers((prevUsers) =>
-        prevUsers.map((user) => (user.id === userId ? response.data : user)),
-      )
-
+      await fetchUsers()
       showToast('회원 등급이 변경되었습니다.', 'success')
-    } catch (error: any) {
-      showToast(
-        error.response?.data?.message || '회원 등급 변경에 실패했습니다.',
-        'error',
-      )
+    } catch {
+      setErrorMessage('회원 등급 변경에 실패했습니다.')
+      showToast('회원 등급 변경에 실패했습니다.', 'error')
+    } finally {
+      setUpdatingUserId(null)
     }
   }
 
-  const handleActiveRequest = (user: AdminUser) => {
-    setActiveTarget(user)
-  }
-
-  const handleActiveCancel = () => {
-    if (isUpdatingActive) return
-    setActiveTarget(null)
-  }
-
-  const handleActiveConfirm = async () => {
-    if (!activeTarget) return
-
-    setIsUpdatingActive(true)
-
+  const handleActiveChange = async (userId: number, nextActive: boolean) => {
     try {
-      const response = await updateUserActiveApi(activeTarget.id, {
-        is_active: !activeTarget.is_active,
+      setUpdatingUserId(userId)
+      setErrorMessage('')
+
+      await updateUserActiveApi(userId, {
+        is_active: nextActive,
       })
 
-      setUsers((prevUsers) =>
-        prevUsers.map((item) =>
-          item.id === activeTarget.id ? response.data : item,
-        ),
-      )
-
-      showToast(
-        activeTarget.is_active
-          ? '회원 계정이 비활성화되었습니다.'
-          : '회원 계정이 활성화되었습니다.',
-        'success',
-      )
-
-      setActiveTarget(null)
-    } catch (error: any) {
-      showToast(
-        error.response?.data?.message || '활성화 상태 변경에 실패했습니다.',
-        'error',
-      )
+      await fetchUsers()
+      showToast('사용자 상태가 변경되었습니다.', 'success')
+    } catch {
+      setErrorMessage('사용자 상태 변경에 실패했습니다.')
+      showToast('사용자 상태 변경에 실패했습니다.', 'error')
     } finally {
-      setIsUpdatingActive(false)
+      setUpdatingUserId(null)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <Page className="admin-page">
+        <Loading
+          title="회원 정보를 불러오는 중입니다"
+          description="사용자 권한과 상태 정보를 확인하고 있습니다."
+        />
+      </Page>
+    )
   }
 
   return (
-    <>
-      <Page className="admin-page">
-        <PageHeader
-          badge="Admin Console"
-          title="회원 관리"
-          description="회원 등급, 가입 방식, 활성화 상태를 관리하고 플랫폼 사용 권한을 제어합니다."
-          actions={
-            <button
-              type="button"
-              className="ui-button ui-button-secondary"
-              onClick={fetchUsers}
-              disabled={isLoading}
-            >
-              {isLoading ? '새로고침 중...' : '회원 목록 새로고침'}
-            </button>
-          }
-        />
+    <Page className="admin-page">
+      <PageHeader
+        badge="Admin Console"
+        title="회원 관리"
+        description="사용자 등급, 계정 상태, 서비스 운영 정보를 관리합니다."
+      />
 
-        {errorMessage && <div className="dataset-alert">{errorMessage}</div>}
+      {errorMessage && <div className="admin-alert">{errorMessage}</div>}
 
-        <StatsGrid>
-          <StatCard label="전체 회원" value={totalUsers} help="등록된 계정" />
-          <StatCard label="활성 회원" value={activeUsers} help="사용 가능 계정" />
-          <StatCard label="비활성 회원" value={inactiveUsers} help="접근 제한 계정" />
-          <StatCard
-            label="프리미엄 / 관리자"
-            value={`${premiumUsers} / ${adminUsers}`}
-            help="상위 권한 계정"
-          />
-        </StatsGrid>
+      <StatsGrid>
+        <StatCard label="전체 회원" value={users.length} help="가입된 사용자" />
+        <StatCard label="관리자" value={adminCount} help="관리 권한 보유" />
+        <StatCard label="Premium" value={premiumCount} help="유료 등급 사용자" />
+        <StatCard label="활성 계정" value={activeCount} help={`비활성 ${inactiveCount}명`} />
+      </StatsGrid>
 
-        <section className="admin-panel ui-card">
-          <div className="admin-toolbar">
-            <div>
-              <span className="ui-badge ui-badge-primary">회원 목록</span>
-              <h2>플랫폼 회원</h2>
-              <p>
-                총 {users.length}명 중 {filteredUsers.length}명이 표시됩니다.
-              </p>
-            </div>
+      <section className="admin-hero ui-card">
+        <div className="admin-hero-content">
+          <span className="ui-badge ui-badge-primary">User Operation</span>
 
+          <h2>
+            사용자 등급과
+            <br />
+            서비스 접근 상태를 관리합니다.
+          </h2>
+
+          <p>
+            관리자 화면에서는 사용자 목록을 확인하고 회원 등급과 활성 상태를 변경할 수 있습니다.
+            추후 사용량 제한, Premium 권한, AI 자동 라벨링 권한까지 이 화면에서 확장할 수 있습니다.
+          </p>
+        </div>
+
+        <div className="admin-hero-card">
+          <strong>{activeCount}</strong>
+          <span>활성 사용자</span>
+          <p>현재 서비스 접근이 가능한 계정입니다.</p>
+        </div>
+      </section>
+
+      <section className="admin-users-panel ui-card">
+        <div className="admin-users-panel-head">
+          <div>
+            <span className="ui-badge ui-badge-primary">Users</span>
+            <h2>사용자 목록</h2>
+            <p>
+              총 {users.length}명 중 {filteredUsers.length}명이 표시되고 있습니다.
+            </p>
+          </div>
+
+          <div className="admin-filter-area">
             <div className="ui-search admin-search">
               <span className="ui-search-icon">⌕</span>
+
               <input
                 className="ui-input"
                 type="search"
                 value={searchKeyword}
                 onChange={(event) => setSearchKeyword(event.target.value)}
-                placeholder="이름, 닉네임, 이메일, 등급 검색"
+                placeholder="이름, 닉네임, 이메일 검색"
               />
             </div>
+
+            <select
+              className="ui-select"
+              value={membershipFilter}
+              onChange={(event) =>
+                setMembershipFilter(event.target.value as MembershipFilter)
+              }
+            >
+              <option value="all">전체 등급</option>
+              <option value="free">Free</option>
+              <option value="premium">Premium</option>
+              <option value="admin">관리자</option>
+            </select>
+
+            <select
+              className="ui-select"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+            >
+              <option value="all">전체 상태</option>
+              <option value="active">활성</option>
+              <option value="inactive">비활성</option>
+            </select>
           </div>
+        </div>
 
-          {isLoading ? (
-            <Skeleton rows={4} />
-          ) : filteredUsers.length === 0 ? (
-            <EmptyState
-              title="표시할 회원이 없습니다"
-              description="검색어를 변경하거나 회원 목록을 새로고침해보세요."
-            />
-          ) : (
-            <div className="admin-user-grid">
-              {filteredUsers.map((user) => (
-                <article
-                  className="admin-user-card ui-card ui-card-hover"
-                  key={user.id}
-                >
-                  <div className="admin-user-card-top">
-                    <div className="admin-user-avatar">
-                      {user.name?.charAt(0) || user.email.charAt(0) || 'U'}
-                    </div>
+        {filteredUsers.length === 0 ? (
+          <EmptyState
+            icon="👤"
+            title="표시할 사용자가 없습니다"
+            description="검색어나 필터 조건을 변경해주세요."
+          />
+        ) : (
+          <div className="admin-user-table-wrap">
+            <table className="admin-user-table">
+              <thead>
+                <tr>
+                  <th>사용자</th>
+                  <th>회원 등급</th>
+                  <th>상태</th>
+                  <th>가입일</th>
+                  <th>등급 변경</th>
+                  <th>상태 변경</th>
+                </tr>
+              </thead>
 
-                    <div className="admin-user-main">
-                      <strong>{user.name || '이름 없음'}</strong>
-                      <span>{user.nickname || user.email}</span>
-                    </div>
+              <tbody>
+                {filteredUsers.map((user) => {
+                  const displayName = user.nickname || user.name || '이름 없음'
+                  const membershipLabel =
+                    MEMBERSHIP_LABEL[user.membership_type] ?? user.membership_type
+                  const isUpdating = updatingUserId === user.id
 
-                    <span
-                      className={`ui-badge ${
-                        user.is_active ? 'ui-badge-primary' : 'ui-badge-danger'
-                      }`}
-                    >
-                      {user.is_active ? '활성' : '비활성'}
-                    </span>
-                  </div>
+                  return (
+                    <tr key={user.id}>
+                      <td>
+                        <div className="admin-user-cell">
+                          <div className="admin-user-avatar">
+                            {displayName.slice(0, 1)}
+                          </div>
 
-                  <div className="admin-user-info">
-                    <div>
-                      <span>이메일</span>
-                      <strong>{user.email}</strong>
-                    </div>
+                          <div>
+                            <strong>{displayName}</strong>
+                            <span>{user.email}</span>
+                          </div>
+                        </div>
+                      </td>
 
-                    <div>
-                      <span>가입 방식</span>
-                      <strong>{user.provider}</strong>
-                    </div>
-
-                    <div>
-                      <span>생년월일</span>
-                      <strong>{user.birth_date || '-'}</strong>
-                    </div>
-
-                    <div>
-                      <span>현재 등급</span>
-                      <strong>
-                        <em
-                          className={`ui-badge ${
-                            MEMBERSHIP_BADGE_CLASS[user.membership_type]
+                      <td>
+                        <span
+                          className={`admin-role-badge ${
+                            user.membership_type === 'admin' ? 'is-admin' : ''
+                          } ${
+                            user.membership_type === 'premium' ? 'is-premium' : ''
                           }`}
                         >
-                          {MEMBERSHIP_LABEL[user.membership_type]}
-                        </em>
-                      </strong>
-                    </div>
-                  </div>
+                          {membershipLabel}
+                        </span>
+                      </td>
 
-                  <div className="admin-user-actions">
-                    <select
-                      className="ui-select"
-                      value={user.membership_type}
-                      onChange={(event) =>
-                        handleMembershipChange(
-                          user.id,
-                          event.target.value as MembershipType,
-                        )
-                      }
-                    >
-                      <option value="free">무료</option>
-                      <option value="premium">프리미엄</option>
-                      <option value="admin">관리자</option>
-                    </select>
+                      <td>
+                        <span
+                          className={`admin-status-badge ${
+                            user.is_active ? 'is-active' : 'is-inactive'
+                          }`}
+                        >
+                          {user.is_active ? '활성' : '비활성'}
+                        </span>
+                      </td>
 
-                    <button
-                      type="button"
-                      className={`ui-button ${
-                        user.is_active ? 'ui-button-danger' : 'ui-button-secondary'
-                      }`}
-                      onClick={() => handleActiveRequest(user)}
-                    >
-                      {user.is_active ? '비활성화' : '활성화'}
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </Page>
+                      <td>{formatDate(user.created_at)}</td>
 
-      <ConfirmDialog
-        open={Boolean(activeTarget)}
-        title={activeTarget?.is_active ? '계정을 비활성화할까요?' : '계정을 활성화할까요?'}
-        description={
-          activeTarget
-            ? `${activeTarget.email} 계정의 사용 가능 상태를 변경합니다.`
-            : ''
-        }
-        confirmText={activeTarget?.is_active ? '비활성화' : '활성화'}
-        cancelText="취소"
-        variant={activeTarget?.is_active ? 'danger' : 'primary'}
-        isLoading={isUpdatingActive}
-        onConfirm={handleActiveConfirm}
-        onCancel={handleActiveCancel}
-      />
-    </>
+                      <td>
+                        <select
+                          className="ui-select admin-role-select"
+                          value={user.membership_type}
+                          onChange={(event) => handleMembershipChange(user.id, event)}
+                          disabled={isUpdating}
+                        >
+                          <option value="free">Free</option>
+                          <option value="premium">Premium</option>
+                          <option value="admin">관리자</option>
+                        </select>
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          className={`ui-button ui-button-sm ${
+                            user.is_active ? 'ui-button-danger' : 'ui-button-primary'
+                          }`}
+                          onClick={() => handleActiveChange(user.id, !user.is_active)}
+                          disabled={isUpdating}
+                        >
+                          {user.is_active ? '비활성화' : '활성화'}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </Page>
   )
 }
 

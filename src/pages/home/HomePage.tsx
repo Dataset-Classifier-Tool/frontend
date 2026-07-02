@@ -2,24 +2,52 @@ import { Link } from 'react-router-dom'
 
 import { Page, StatCard, StatsGrid } from '../../common/ui'
 
+const PIPELINE_STEPS = [
+  {
+    number: '01',
+    title: 'Dataset 생성',
+    desc: '목적과 라벨 기준 설정',
+  },
+  {
+    number: '02',
+    title: 'Video Upload',
+    desc: '원천 영상 업로드',
+  },
+  {
+    number: '03',
+    title: 'Frame Extract',
+    desc: '학습 후보 이미지 추출',
+  },
+  {
+    number: '04',
+    title: 'Labeling',
+    desc: '화재·연기·등화류 분류',
+  },
+  {
+    number: '05',
+    title: 'Export',
+    desc: 'YOLO 학습 구조 변환',
+  },
+]
+
 const WORKFLOW_STEPS = [
   {
     number: '01',
     icon: '🗂️',
     title: '데이터셋 생성',
-    description: '수집 목적과 라벨 기준을 정리한 프로젝트를 생성합니다.',
+    description: '수집 목적, 시간대, 라벨 기준을 정리한 데이터셋 프로젝트를 생성합니다.',
   },
   {
     number: '02',
     icon: '🎬',
     title: '영상 업로드',
-    description: '도로·터널 원천 영상을 업로드하고 분석 준비를 시작합니다.',
+    description: '도로·터널 원천 영상을 업로드하고 프레임 추출 작업을 시작합니다.',
   },
   {
     number: '03',
     icon: '🖼️',
     title: '프레임 추출',
-    description: '지정한 간격으로 학습 후보 이미지를 자동 생성합니다.',
+    description: '지정한 간격으로 학습 후보 이미지를 자동 생성하고 저장합니다.',
   },
   {
     number: '04',
@@ -31,13 +59,13 @@ const WORKFLOW_STEPS = [
     number: '05',
     icon: '📦',
     title: 'Export',
-    description: '정리된 데이터를 ZIP 또는 YOLO 구조로 내보냅니다.',
+    description: '검수된 데이터셋을 YOLO 학습 구조 또는 ZIP 형태로 내보냅니다.',
   },
   {
     number: '06',
     icon: '🤖',
     title: 'AI 확장',
-    description: '자동 라벨링과 Bounding Box 기능으로 확장합니다.',
+    description: 'Bounding Box, 자동 라벨링, 딥러닝 학습 파이프라인으로 확장합니다.',
   },
 ]
 
@@ -62,19 +90,20 @@ const FEATURE_CARDS = [
 function HomePage() {
   return (
     <Page>
-      <section className="home-hero ui-card">
+      <section className="home-hero">
         <div className="home-hero-content">
-          <div className="ui-badge ui-badge-primary">AI Dataset Platform</div>
+          <span className="ui-badge ui-badge-primary">AI Dataset Builder</span>
 
           <h1 className="home-hero-title">
-            영상에서 학습 데이터셋까지,
+            영상 원천 데이터에서
             <br />
-            한 번에 완성하는 <span>AI 라벨링 플랫폼</span>
+            학습용 데이터셋까지 <span>한 번에 제작합니다.</span>
           </h1>
 
           <p className="home-hero-description">
-            도로·터널 화재, 연기, 차량 등화류 데이터를 업로드하고 프레임 추출,
-            수동 라벨링, 검수, Export까지 하나의 작업 흐름으로 관리합니다.
+            Dataset Classifier Tool은 도로·터널 화재, 연기, 차량 등화류 데이터를
+            업로드하고 프레임 추출, 수동 라벨링, 검수, Export까지 연결하는
+            AI 학습 데이터셋 제작 플랫폼입니다.
           </p>
 
           <div className="home-hero-actions">
@@ -86,49 +115,44 @@ function HomePage() {
               영상 업로드
             </Link>
           </div>
+
+          <div className="home-hero-tags">
+            <span>Fire</span>
+            <span>Smoke</span>
+            <span>Car Light</span>
+            <span>Negative</span>
+          </div>
         </div>
 
-        <div className="home-hero-panel">
+        <aside className="home-hero-panel">
           <div className="home-pipeline-card">
             <div className="home-pipeline-header">
-              <span className="ui-badge ui-badge-primary">Current Flow</span>
-              <strong>Dataset Build Pipeline</strong>
+              <span className="ui-badge ui-badge-primary">Current Pipeline</span>
+              <strong>Dataset Build Flow</strong>
+              <p>현재 구현된 핵심 작업 흐름입니다.</p>
             </div>
 
             <div className="home-pipeline-list">
-              <div>
-                <span>01</span>
-                <strong>Upload</strong>
-                <small>원천 영상 등록</small>
-              </div>
+              {PIPELINE_STEPS.map((step) => (
+                <div className="home-pipeline-item" key={step.number}>
+                  <span>{step.number}</span>
 
-              <div>
-                <span>02</span>
-                <strong>Extract</strong>
-                <small>프레임 자동 추출</small>
-              </div>
-
-              <div>
-                <span>03</span>
-                <strong>Label</strong>
-                <small>수동 라벨링</small>
-              </div>
-
-              <div>
-                <span>04</span>
-                <strong>Export</strong>
-                <small>YOLO 학습 구조</small>
-              </div>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <small>{step.desc}</small>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </aside>
       </section>
 
       <StatsGrid>
         <StatCard label="핵심 흐름" value="6" help="생성부터 Export까지" />
         <StatCard label="지원 라벨" value="4" help="fire / smoke / carlight / negative" />
-        <StatCard label="Export 형식" value="YOLO" help="학습 파이프라인 연결" />
-        <StatCard label="다음 단계" value="AI" help="자동 라벨링 확장 예정" />
+        <StatCard label="현재 UI 완성도" value="90%" help="프론트 마감 단계" />
+        <StatCard label="다음 목표" value="BBox" help="Bounding Box 제작 예정" />
       </StatsGrid>
 
       <section className="home-section">

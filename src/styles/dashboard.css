@@ -1,0 +1,431 @@
+/*
+=========================================================
+Dashboard Page
+=========================================================
+*/
+
+.dashboard-page {
+    width: 100%;
+}
+
+.dashboard-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 28px;
+    overflow: hidden;
+    padding: 38px;
+    border-radius: 32px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background:
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.14), transparent 34%),
+        radial-gradient(circle at right, rgba(59, 130, 246, 0.1), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(8, 12, 20, 0.96));
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.22);
+}
+
+.dashboard-hero::before {
+    content: "";
+    position: absolute;
+    right: -140px;
+    top: -160px;
+    width: 380px;
+    height: 380px;
+    border-radius: 999px;
+    background: rgba(62, 207, 142, 0.16);
+    filter: blur(90px);
+    pointer-events: none;
+}
+
+.dashboard-hero-content,
+.dashboard-progress-card {
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-hero h2 {
+    max-width: 780px;
+    margin: 20px 0 14px;
+    color: var(--text-primary);
+    font-size: clamp(36px, 4.4vw, 58px);
+    font-weight: 950;
+    line-height: 1.08;
+    letter-spacing: -0.075em;
+}
+
+.dashboard-hero h2 span {
+    background: linear-gradient(135deg, #3ecf8e, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dashboard-hero p {
+    max-width: 740px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.85;
+}
+
+.dashboard-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.dashboard-progress-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    border: 1px solid rgba(62, 207, 142, 0.22);
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at center, rgba(62, 207, 142, 0.12), transparent 56%),
+        rgba(62, 207, 142, 0.055);
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.24);
+}
+
+.dashboard-progress-ring {
+    width: 190px;
+    height: 190px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto;
+    padding: 10px;
+    border-radius: 999px;
+    box-shadow: 0 0 32px rgba(62, 207, 142, 0.12);
+}
+
+.dashboard-progress-ring > div {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background:
+        radial-gradient(circle at center, rgba(62, 207, 142, 0.16), transparent 58%),
+        rgba(15, 23, 42, 0.96);
+    text-align: center;
+}
+
+.dashboard-progress-ring strong {
+    display: block;
+    color: var(--primary-color);
+    font-size: 44px;
+    font-weight: 950;
+    letter-spacing: -0.07em;
+}
+
+.dashboard-progress-ring span {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.dashboard-progress-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.dashboard-progress-meta div {
+    padding: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.dashboard-progress-meta span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.dashboard-progress-meta strong {
+    color: var(--text-primary);
+    font-size: 22px;
+    font-weight: 950;
+}
+
+/*
+=========================================================
+Dashboard Layout
+=========================================================
+*/
+
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: 20px;
+    align-items: start;
+}
+
+.dashboard-main,
+.dashboard-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dashboard-side {
+    position: sticky;
+    top: calc(var(--header-height) + 24px);
+}
+
+.dashboard-panel {
+    padding: 28px;
+    border-radius: 28px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    background:
+        radial-gradient(circle at top left, rgba(62, 207, 142, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(8, 12, 20, 0.96));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+}
+
+.dashboard-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.dashboard-panel h2,
+.dashboard-panel-header h2 {
+    margin: 16px 0 8px;
+    color: var(--text-primary);
+    font-size: 25px;
+    font-weight: 950;
+    letter-spacing: -0.055em;
+}
+
+.dashboard-panel p,
+.dashboard-panel-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/*
+=========================================================
+Label Stats
+=========================================================
+*/
+
+.dashboard-label-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.dashboard-label-card {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.dashboard-label-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: rgba(62, 207, 142, 0.12);
+    font-size: 22px;
+}
+
+.dashboard-label-card span {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.dashboard-label-card strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -0.04em;
+}
+
+.dashboard-label-card em {
+    color: var(--primary-color);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 950;
+}
+
+.dashboard-label-card i {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+}
+
+/*
+=========================================================
+Recent Activity
+=========================================================
+*/
+
+.dashboard-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dashboard-activity-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+    transition: var(--transition);
+}
+
+.dashboard-activity-item:hover {
+    transform: translateX(4px);
+    border-color: rgba(62, 207, 142, 0.28);
+    background: rgba(62, 207, 142, 0.055);
+}
+
+.dashboard-activity-item strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 950;
+}
+
+.dashboard-activity-item span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/*
+=========================================================
+Next Step / Pipeline
+=========================================================
+*/
+
+.dashboard-next-list,
+.dashboard-pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dashboard-next-list div {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.dashboard-next-list strong {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: rgba(62, 207, 142, 0.12);
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 950;
+}
+
+.dashboard-next-list span {
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.dashboard-pipeline div {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.dashboard-pipeline div.is-done {
+    border-color: rgba(62, 207, 142, 0.28);
+    background: rgba(62, 207, 142, 0.09);
+    color: var(--primary-color);
+}
+
+/*
+=========================================================
+Responsive
+=========================================================
+*/
+
+@media (max-width: 1200px) {
+    .dashboard-hero,
+    .dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-side {
+        position: static;
+    }
+
+    .dashboard-progress-card {
+        max-width: 420px;
+    }
+}
+
+@media (max-width: 760px) {
+    .dashboard-hero,
+    .dashboard-panel {
+        padding: 24px;
+    }
+
+    .dashboard-panel-header {
+        flex-direction: column;
+    }
+
+    .dashboard-progress-meta,
+    .dashboard-label-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-activity-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

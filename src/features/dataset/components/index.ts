@@ -11,4 +11,7 @@ export { default as FrameToolbar } from './toolbar/FrameToolbar'
 export { default as LabelFilterBar } from './toolbar/LabelFilterBar'
 export { default as PaginationBar } from './toolbar/PaginationBar'
 
+export { default as BoundingBoxCanvas } from './boundingBox/BoundingBoxCanvas'
+export { default as BoundingBoxPanel } from './boundingBox/BoundingBoxPanel'
+
 export { default as FrameGrid } from './FrameGrid'

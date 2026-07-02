@@ -1,4 +1,4 @@
-import type { DragEvent, RefObject } from 'react'
+import type { DragEvent, KeyboardEvent, RefObject } from 'react'
 
 type UploadDropZoneProps = {
   file: File | null
@@ -21,22 +21,36 @@ function UploadDropZone({
   onClearFile,
   onDraggingChange,
 }: UploadDropZoneProps) {
+  const openFilePicker = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openFilePicker()
+    }
+  }
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    onDraggingChange(false)
+    onFileChange(event.dataTransfer.files?.[0] ?? null)
+  }
+
   return (
     <div
       className={`upload-dropzone ${isDragging ? 'is-dragging' : ''} ${
         file ? 'is-selected' : ''
       }`}
-      onClick={() => fileInputRef.current?.click()}
-      onDragOver={(event: DragEvent<HTMLDivElement>) => {
+      onClick={openFilePicker}
+      onKeyDown={handleKeyDown}
+      onDragOver={(event) => {
         event.preventDefault()
         onDraggingChange(true)
       }}
       onDragLeave={() => onDraggingChange(false)}
-      onDrop={(event: DragEvent<HTMLDivElement>) => {
-        event.preventDefault()
-        onDraggingChange(false)
-        onFileChange(event.dataTransfer.files?.[0] ?? null)
-      }}
+      onDrop={handleDrop}
       role="button"
       tabIndex={0}
     >
@@ -48,12 +62,15 @@ function UploadDropZone({
         hidden
       />
 
-      <div className="upload-dropzone-icon">🎥</div>
+      <div className="upload-dropzone-orbit">
+        <div className="upload-dropzone-icon">{file ? '✅' : '🎥'}</div>
+      </div>
 
       {file ? (
-        <>
+        <div className="upload-file-selected">
+          <span className="ui-badge ui-badge-primary">파일 선택 완료</span>
           <strong>{file.name}</strong>
-          <span>{selectedFileSizeMb.toFixed(2)}MB</span>
+          <p>{selectedFileSizeMb.toFixed(2)}MB · 업로드 준비 완료</p>
 
           <button
             type="button"
@@ -65,12 +82,14 @@ function UploadDropZone({
           >
             파일 제거
           </button>
-        </>
+        </div>
       ) : (
-        <>
+        <div className="upload-file-empty">
           <strong>영상을 드래그하거나 클릭해서 선택하세요</strong>
-          <span>MP4, AVI, MOV, MKV, WEBM / 최대 {maxFileSizeMb}MB</span>
-        </>
+          <p>MP4, AVI, MOV, MKV, WEBM / 최대 {maxFileSizeMb}MB</p>
+
+          <span className="upload-dropzone-button">파일 선택하기</span>
+        </div>
       )}
     </div>
   )

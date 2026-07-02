@@ -1,6 +1,8 @@
 import type { LabelName } from '../../../../types/label'
 
-type LabelFilter = LabelName | 'all' | 'unlabeled'
+import LabelFilterBar from './LabelFilterBar'
+
+type LabelFilter = LabelName | 'all' | 'unlabeled' | 'no_bbox'
 
 type LabelOption = {
   value: LabelName
@@ -25,53 +27,25 @@ function FrameToolbar({
   onChangeLabel,
 }: FrameToolbarProps) {
   return (
-    <div className="dataset-toolbar">
+    <section className="dataset-toolbar">
       <div className="dataset-toolbar-left">
-        <span className="ui-badge ui-badge-primary">프레임 갤러리</span>
-        <span className="ui-badge">
-          {filteredCount} / {totalCount} 표시
-        </span>
+        <div className="dataset-toolbar-title">
+          <span className="ui-badge ui-badge-primary">Filter</span>
+          <h2>프레임 필터</h2>
+          <p>
+            전체 {totalCount}개 중 {filteredCount}개 표시 중입니다.
+          </p>
+        </div>
       </div>
 
       <div className="dataset-toolbar-right">
-        <button
-          type="button"
-          className={`ui-button ui-button-sm ${
-            selectedLabel === 'all' ? 'ui-button-primary' : 'ui-button-secondary'
-          }`}
-          onClick={() => onChangeLabel('all')}
-        >
-          전체
-        </button>
-
-        <button
-          type="button"
-          className={`ui-button ui-button-sm ${
-            selectedLabel === 'unlabeled'
-              ? 'ui-button-primary'
-              : 'ui-button-secondary'
-          }`}
-          onClick={() => onChangeLabel('unlabeled')}
-        >
-          미분류
-        </button>
-
-        {labelOptions.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`ui-button ui-button-sm ${
-              selectedLabel === option.value
-                ? 'ui-button-primary'
-                : 'ui-button-secondary'
-            }`}
-            onClick={() => onChangeLabel(option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
+        <LabelFilterBar
+          selectedLabel={selectedLabel}
+          labelOptions={labelOptions}
+          onChangeLabel={onChangeLabel}
+        />
       </div>
-    </div>
+    </section>
   )
 }
 
