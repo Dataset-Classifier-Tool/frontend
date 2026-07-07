@@ -1,6 +1,6 @@
 import type { LabelName } from './label'
 
-export type BoundingBoxSource = 'manual' | 'auto' | 'mock'
+export type BoundingBoxSource = 'manual' | 'ai' | 'mock'
 
 export interface BoundingBox {
   id: number

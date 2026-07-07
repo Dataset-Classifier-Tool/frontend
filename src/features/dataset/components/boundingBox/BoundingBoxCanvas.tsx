@@ -54,13 +54,18 @@ const LABEL_TEXT: Record<string, string> = {
   fire_smoke_carlight: '화재/연기/등화류',
 }
 
+const SOURCE_TEXT = {
+  manual: 'Manual',
+  ai: 'AI',
+  mock: 'Mock',
+} as const
+
 function getLabelText(labelName: LabelName) {
   return LABEL_TEXT[labelName] ?? labelName
 }
 
 function getBoxMetaText(box: BoundingBox) {
-  const sourceText =
-    box.source === 'auto' ? 'AI' : box.source === 'mock' ? 'Mock' : 'Manual'
+  const sourceText = SOURCE_TEXT[box.source] ?? 'Manual'
 
   if (typeof box.confidence === 'number') {
     return `${sourceText} ${(box.confidence * 100).toFixed(0)}%`

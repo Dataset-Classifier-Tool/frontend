@@ -28,16 +28,23 @@ export type AutoLabelPrediction = {
 
 export type AutoLabelDatasetResponse = {
   dataset_id: number
-  mode: AutoLabelMode
-  analyzed_frame_count: number
+  total_frames?: number
+  labeled_frames?: number
+  failed_frames?: number
+  analyzed_frame_count?: number
   created_box_count: number
-  predictions: AutoLabelPrediction[]
+  label_counts?: Partial<Record<LabelName, number>>
+  predictions?: AutoLabelPrediction[]
+  results?: unknown[]
 }
 
 export async function runAutoLabelApi(request: AutoLabelRequest) {
+  if (!request.dataset_id) {
+    throw new Error('dataset_id가 필요합니다.')
+  }
+
   const response = await apiClient.post<ApiResponse<AutoLabelDatasetResponse>>(
-    '/api/classifier/auto-label',
-    request,
+    `/api/datasets/${request.dataset_id}/auto-label`,
   )
 
   return response.data
@@ -54,7 +61,7 @@ export async function acceptAutoLabelPredictionApi(prediction: AutoLabelPredicti
       y: prediction.y,
       width: prediction.width,
       height: prediction.height,
-      source: 'auto',
+      source: 'ai',
       confidence: prediction.confidence,
       is_verified: false,
     },
